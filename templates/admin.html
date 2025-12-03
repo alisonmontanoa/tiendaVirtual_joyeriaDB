@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Administrador - Joyeria</title>
+    <script src="/static/js/admin.js"></script>
+</head>
+<body>
+
+<h1>Panel de Administración</h1>
+
+<h2>Crear Producto</h2>
+<input id="name" placeholder="Nombre">
+<input id="price" placeholder="Precio" type="number">
+<input id="category_id" placeholder="ID Categoría">
+<textarea id="description" placeholder="Descripción"></textarea>
+<button onclick="crearProducto()">Guardar</button>
+
+<hr>
+
+<h2>Productos Existentes</h2>
+<div id="listaProductos"></div>
+
+</body>
+</html>

@@ -58,3 +58,4 @@ def update_category(id):
 def delete_category(id):
     categories.delete_one({"_id": ObjectId(id)})
     return jsonify({"message": "Category deleted"}), 200
+
