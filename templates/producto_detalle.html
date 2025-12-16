@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="productTitle">Producto - Joyería</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="/" class="logo">
+                <i class="fas fa-gem"></i>
+                Joyas Elegantes
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Inicio</a>
+                <a href="/productos" class="nav-link">Productos</a>
+                <button class="cart-btn" onclick="openCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="products-section">
+        <!-- Breadcrumb -->
+        <nav style="margin-bottom: 2rem;">
+            <a href="/">Inicio</a> &gt; 
+            <a href="/productos">Productos</a> &gt;
+            <span id="breadcrumbCategory">Categoría</span> &gt;
+            <span id="breadcrumbProduct">Producto</span>
+        </nav>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+            <!-- Galería de Imágenes -->
+            <div>
+                <div id="mainImage" style="width: 100%; height: 400px; overflow: hidden; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                    <img id="productMainImage" src="" alt="Producto" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div id="productThumbnails" style="display: flex; gap: 0.5rem;">
+                    <!-- Thumbnails se cargan con JavaScript -->
+                </div>
+            </div>
+
+            <!-- Información del Producto -->
+            <div>
+                <h1 id="productName" style="font-size: 2.5rem; margin-bottom: 1rem;"></h1>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span id="productPrice" style="font-size: 2rem; color: var(--color-primary); font-weight: bold;"></span>
+                    <span id="productViews" class="badge" style="background: #f0f0f0; padding: 0.3rem 0.8rem;">
+                        <i class="fas fa-eye"></i> <span id="viewsCount">0</span> vistas
+                    </span>
+                    <span id="productSales" class="badge" style="background: #d4edda; padding: 0.3rem 0.8rem;">
+                        <i class="fas fa-shopping-bag"></i> <span id="salesCount">0</span> vendidos
+                    </span>
+                </div>
+
+                <div class="product-meta" style="margin-bottom: 2rem;">
+                    <span><i class="fas fa-tag"></i> Categoría: <span id="productCategory"></span></span>
+                    <span><i class="fas fa-star"></i> ⭐⭐⭐⭐⭐ (45)</span>
+                </div>
+
+                <p id="productDescription" style="margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.8;"></p>
+
+                <!-- Características -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Características</h3>
+                    <div id="productCharacteristics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- Características se cargan con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Selector de Cantidad -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Cantidad:</label>
+                    <div class="cart-quantity" style="width: fit-content;">
+                        <button class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                        <input type="number" id="productQuantity" value="1" min="1" 
+                               style="width: 60px; text-align: center; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
+                        <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                    <button class="btn btn-primary" onclick="addToCartFromDetail()" style="flex: 2;">
+                        <i class="fas fa-cart-plus"></i> Añadir al Carrito
+                    </button>
+                    <button class="btn btn-outline" style="flex: 1;" onclick="buyNow()">
+                        Comprar Ahora
+                    </button>
+                </div>
+
+                <!-- Información Adicional -->
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: var(--border-radius);">
+                    <h4 style="margin-bottom: 1rem;"><i class="fas fa-shipping-fast"></i> Envío y Devoluciones</h4>
+                    <ul style="list-style: none;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-success);"></i> Envío gratis en compras mayores a Bs 500</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-success);"></i> Devoluciones dentro de los 30 días</li>
+                        <li><i class="fas fa-check" style="color: var(--color-success);"></i> Garantía de autenticidad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Relacionados -->
+        <div style="margin-top: 4rem;">
+            <h2 class="section-title">Productos Relacionados</h2>
+            <div class="products-grid" id="relatedProducts">
+                <!-- Productos relacionados se cargan con JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <!-- Footer igual que en user.html -->
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Carrito Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tu Carrito</h3>
+                <button class="modal-close" onclick="closeCart()">&times;</button>
+            </div>
+            <div class="modal-body" id="cartItems">
+                <!-- Items del carrito -->
+            </div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">Bs 0.00</span>
+            </div>
+            <div class="modal-footer" style="padding: 1.5rem;">
+                <button class="btn btn-primary btn-block" onclick="window.location.href='/carrito'">
+                    Ver Carrito Completo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/products.js"></script>
+    <script src="/static/js/cart.js"></script>
+    <script>
+        // Cargar producto por ID de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        if (productId) {
+            loadProductDetail(productId);
+        }
+    </script>
+</body>
+</html>

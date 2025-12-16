@@ -1,25 +1,347 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Administrador - Joyeria</title>
-    <script src="/static/js/admin.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Joyería</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/admin-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <h1><i class="fas fa-gem"></i> Admin Joyas</h1>
+            </div>
+            <ul class="admin-menu">
+                <li>
+                    <a href="#dashboard" class="active" onclick="showSection('dashboard')">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#products" onclick="showSection('products')">
+                        <i class="fas fa-box"></i> Productos
+                    </a>
+                </li>
+                <li>
+                    <a href="#categories" onclick="showSection('categories')">
+                        <i class="fas fa-tags"></i> Categorías
+                    </a>
+                </li>
+                <li>
+                    <a href="#orders" onclick="showSection('orders')">
+                        <i class="fas fa-shopping-bag"></i> Órdenes
+                    </a>
+                </li>
+                <li>
+                    <a href="#analytics" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </a>
+                </li>
+                <li style="margin-top: 2rem;">
+                    <a href="/" style="color: #ff6b6b;">
+                        <i class="fas fa-store"></i> Ir a Tienda
+                    </a>
+                </li>
+            </ul>
+        </aside>
 
-<h1>Panel de Administración</h1>
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <h2 id="sectionTitle">Dashboard</h2>
+                <div class="admin-actions">
+                    <button class="btn btn-primary" id="addBtn" style="display: none;">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </header>
 
-<h2>Crear Producto</h2>
-<input id="name" placeholder="Nombre">
-<input id="price" placeholder="Precio" type="number">
-<input id="category_id" placeholder="ID Categoría">
-<textarea id="description" placeholder="Descripción"></textarea>
-<button onclick="crearProducto()">Guardar</button>
+            <!-- Content Sections -->
+            <div class="admin-content">
+                <!-- Dashboard -->
+                <section id="dashboard" class="section-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon orders">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalOrders">0</h3>
+                                <p>Órdenes Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon products">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalProducts">0</h3>
+                                <p>Productos</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon sales">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalSales">Bs 0</h3>
+                                <p>Ventas Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalViews">0</h3>
+                                <p>Visitas Totales</p>
+                            </div>
+                        </div>
+                    </div>
 
-<hr>
+                    <!-- Gráficos -->
+                    <div class="chart-container">
+                        <h3 class="chart-title">Ventas Mensuales</h3>
+                        <canvas id="salesChart"></canvas>
+                    </div>
 
-<h2>Productos Existentes</h2>
-<div id="listaProductos"></div>
+                    <!-- Últimas Órdenes -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>Órdenes Recientes</h3>
+                            <button class="btn btn-outline" onclick="showSection('orders')">
+                                Ver Todas
+                            </button>
+                        </div>
+                        <table class="table" id="recentOrders">
+                            <thead>
+                                <tr>
+                                    <th>Orden #</th>
+                                    <th>Cliente</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Se carga con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
+                <!-- Productos -->
+                <section id="products" class="section-content" style="display: none;">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>Gestión de Productos</h3>
+                            <button class="btn btn-primary" onclick="showProductForm()">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </button>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Vistas</th>
+                                    <th>Ventas</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <!-- Se carga con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Categorías -->
+                <section id="categories" class="section-content" style="display: none;">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>Gestión de Categorías</h3>
+                            <button class="btn btn-primary" onclick="showCategoryForm()">
+                                <i class="fas fa-plus"></i> Nueva Categoría
+                            </button>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Productos</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTable">
+                                <!-- Se carga con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Órdenes -->
+                <section id="orders" class="section-content" style="display: none;">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3>Gestión de Órdenes</h3>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Orden #</th>
+                                    <th>Total</th>
+                                    <th>Método Pago</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTable">
+                                <!-- Se carga con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Analytics -->
+                <section id="analytics" class="section-content" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3 id="totalVisits">0</h3>
+                                <p>Visitas Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3 id="conversionRate">0%</h3>
+                                <p>Tasa de Conversión</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3 id="avgOrder">Bs 0</h3>
+                                <p>Ticket Promedio</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">Productos Más Vistos</h3>
+                        <canvas id="viewsChart"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">Productos Más Vendidos</h3>
+                        <canvas id="salesChart2"></canvas>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Nuevo Producto</h3>
+                <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio (Bs)</label>
+                            <input type="number" class="form-control" id="productPrice" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-control" id="productCategory" required>
+                                <!-- Se carga con JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Producto</label>
+                            <select class="form-control" id="productType">
+                                <option value="joya">Joya</option>
+                                <option value="reloj">Reloj</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fotos (hasta 5 imágenes)</label>
+                            <input type="file" id="productPhotos" class="form-control" accept="image/*" multiple>
+                            <small>Puedes seleccionar varias imágenes.</small>
+                            <div id="photoPreview" class="preview-container"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Características (JSON)</label>
+                        <textarea class="form-control" id="productCharacteristics" rows="3"
+                                  placeholder='{"material": "oro", "quilate": "18k", "piedra": "diamante"}'></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #eee;">
+                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveProduct()">
+                    Guardar Producto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Categoría -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Nueva Categoría</h3>
+                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #eee;">
+                <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveCategory()">
+                    Guardar Categoría
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/admin.js"></script>
 </body>
 </html>

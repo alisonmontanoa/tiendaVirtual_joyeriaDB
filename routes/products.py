@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import os
 
 products_bp = Blueprint("products", __name__)
 
@@ -9,181 +11,188 @@ client = MongoClient("mongodb://localhost:27017/")
 db = client["joyeria_db"]
 products = db["products"]
 categories = db["categories"]
-orders = db["orders"]
 
-# Crear producto
+UPLOAD_FOLDER = "static/images/"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+# Verifica imágenes válidas
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# ============================
+#   CREAR PRODUCTO
+# ============================
 @products_bp.route("/products", methods=["POST"])
 def create_product():
-    data = request.json
+    data = request.form
+
+    # Guardar fotos
+    photos_list = []
+    if "photos" in request.files:
+        files = request.files.getlist("photos")
+
+        for file in files:
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                path = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(path)
+                photos_list.append("/static/images/" + filename)
 
     product_id = products.insert_one({
-        "name": data["name"],
+        "name": data.get("name"),
         "description": data.get("description", ""),
-        "price": float(data["price"]),
-        "category_id": data["category_id"] or data.get("category"),
-        "photos": data.get("photos", []),  # Multiples fotos
-        "characteristics": data.get("characteristics", {}),  # Caracteristicas adicionales
+        "price": float(data.get("price")),
+        "category_id": str(data.get("category_id")),
+        "type": data.get("type", "joya"),
+        "photos": photos_list,
+        "characteristics": {},
         "views": 0,
-        "purchases": 0,  # Contador de compras
+        "purchases": 0,
         "created_at": datetime.now(),
         "updated_at": datetime.now()
     }).inserted_id
 
     return jsonify({"message": "Product created", "id": str(product_id)}), 201
 
-# Obtener todos los productos
+
+# ============================
+#   OBTENER TODOS
+# ============================
 @products_bp.route("/products", methods=["GET"])
 def get_products():
     result = []
     for prod in products.find():
         prod["_id"] = str(prod["_id"])
         result.append(prod)
-
     return jsonify(result), 200
 
-# Obtener productos por categoria
+
+# ============================
+#   OBTENER POR CATEGORÍA
+# ============================
 @products_bp.route("/products/category/<id>", methods=["GET"])
 def get_products_by_category(id):
+    category = categories.find_one({"_id": ObjectId(id)})
+    if not category:
+        return jsonify({"error": "Category not found"}), 404
+
     result = []
     for prod in products.find({"category_id": id}):
-        # Incrementar vistas cuando se muestra por categoria
-        products.update_one(
-            {"_id": prod["_id"]},
-            {"$inc": {"views": 1}}
-        )
-        
+        products.update_one({"_id": prod["_id"]}, {"$inc": {"views": 1}})
         prod["_id"] = str(prod["_id"])
         result.append(prod)
 
     return jsonify(result), 200
 
-# Actualizar producto
+
+# ============================
+#   ACTUALIZAR PRODUCTO
+# ============================
 @products_bp.route("/products/<id>", methods=["PUT"])
 def update_product(id):
-    data = request.json
-    data["updated_at"] = datetime.now()
-    
-    products.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": data}
-    )
+
+    product = products.find_one({"_id": ObjectId(id)})
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
+    data = request.form
+    updated_photos = product.get("photos", [])
+
+    # Si envía imágenes nuevas → reemplazamos
+    if "photos" in request.files:
+        new_photos = request.files.getlist("photos")
+        updated_photos = []
+
+        for file in new_photos:
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                updated_photos.append("/static/images/" + filename)
+
+    updated_fields = {
+        "name": data.get("name", product["name"]),
+        "description": data.get("description", product.get("description", "")),
+        "price": float(data.get("price", product["price"])),
+        "category_id": str(data.get("category_id", product["category_id"])),
+        "type": data.get("type", product.get("type", "joya")),
+        "photos": updated_photos,
+        "updated_at": datetime.now()
+    }
+
+    products.update_one({"_id": ObjectId(id)}, {"$set": updated_fields})
+
     return jsonify({"message": "Product updated"}), 200
 
 
-# Eliminar producto
+# ============================
+#   ELIMINAR PRODUCTO
+# ============================
 @products_bp.route("/products/<id>", methods=["DELETE"])
 def delete_product(id):
     products.delete_one({"_id": ObjectId(id)})
     return jsonify({"message": "Product deleted"}), 200
 
-# Obtener producto por ID con incremento de vistas
+
+# ============================
+#   DETALLE POR ID (CONTADOR)
+# ============================
 @products_bp.route("/products/<id>", methods=["GET"])
 def get_product(id):
     product = products.find_one({"_id": ObjectId(id)})
     if not product:
         return jsonify({"error": "Product not found"}), 404
 
-    # Incrementar vistas cuando se ve el detalle
-    products.update_one(
-        {"_id": ObjectId(id)},
-        {"$inc": {"views": 1}}
-    )
-
+    products.update_one({"_id": ObjectId(id)}, {"$inc": {"views": 1}})
     product["_id"] = str(product["_id"])
+
     return jsonify(product), 200
 
-# BUSQUEDA DE PRODUCTOS 
+
+# ============================
+#   BÚSQUEDA
+# ============================
 @products_bp.route("/products/search", methods=["GET"])
 def search_products():
-    query = request.args.get("q", "")
-    category = request.args.get("category", "")
-    
-    search_filter = {}
-    
-    if query:
-        search_filter["$or"] = [
-            {"name": {"$regex": query, "$options": "i"}},
-            {"description": {"$regex": query, "$options": "i"}}
+    q = request.args.get("q", "")
+    cat = request.args.get("category", "")
+
+    filter_query = {}
+
+    if q:
+        filter_query["$or"] = [
+            {"name": {"$regex": q, "$options": "i"}},
+            {"description": {"$regex": q, "$options": "i"}}
         ]
-    
-    if category:
-        search_filter["category_id"] = category
-    
+
+    if cat:
+        filter_query["category_id"] = cat
+
     result = []
-    for product in products.find(search_filter):
-        # Incrementar vistas cuando se busca
-        products.update_one(
-            {"_id": product["_id"]},
-            {"$inc": {"views": 1}}
-        )
-        
-        product["_id"] = str(product["_id"])
-        result.append(product)
-    
+    for p in products.find(filter_query):
+        products.update_one({"_id": p["_id"]}, {"$inc": {"views": 1}})
+        p["_id"] = str(p["_id"])
+        result.append(p)
+
     return jsonify(result), 200
 
-# PRODUCTOS MAS VISTOS
+
+# ============================
+#   TOP VIEWS & BEST SELLERS
+# ============================
 @products_bp.route("/products/most-viewed", methods=["GET"])
 def get_most_viewed():
-    limit = int(request.args.get("limit", 10))
-    
     result = []
-    for product in products.find().sort("views", -1).limit(limit):
-        product["_id"] = str(product["_id"])
-        result.append(product)
-    
+    for p in products.find().sort("views", -1).limit(10):
+        p["_id"] = str(p["_id"])
+        result.append(p)
     return jsonify(result), 200
 
-# PRODUCTOS MAS VENDIDOS
+
 @products_bp.route("/products/best-sellers", methods=["GET"])
 def get_best_sellers():
-    limit = int(request.args.get("limit", 10))
-    
     result = []
-    for product in products.find().sort("purchases", -1).limit(limit):
-        product["_id"] = str(product["_id"])
-        result.append(product)
-    
+    for p in products.find().sort("purchases", -1).limit(10):
+        p["_id"] = str(p["_id"])
+        result.append(p)
     return jsonify(result), 200
-
-# ANALYTICS
-@products_bp.route("/products/analytics", methods=["GET"])
-def get_product_analytics():
-    # Productos mas vistos vs mas comprados
-    most_viewed = list(products.find().sort("views", -1).limit(5))
-    best_sellers = list(products.find().sort("purchases", -1).limit(5))
-    
-    # Estadisticas generales
-    total_products = products.count_documents({})
-    total_views = products.aggregate([{"$group": {"_id": None, "total": {"$sum": "$views"}}}]).next().get("total", 0)
-    total_purchases = products.aggregate([{"$group": {"_id": None, "total": {"$sum": "$purchases"}}}]).next().get("total", 0)
-    
-    # Convertir ObjectId a string
-    for product in most_viewed:
-        product["_id"] = str(product["_id"])
-    
-    for product in best_sellers:
-        product["_id"] = str(product["_id"])
-    
-    return jsonify({
-        "stats": {
-            "total_products": total_products,
-            "total_views": total_views,
-            "total_purchases": total_purchases
-        },
-        "most_viewed": most_viewed,
-        "best_sellers": best_sellers
-    }), 200
-
-# INCREMENTAR VISTAS
-@products_bp.route("/products/<id>/view", methods=["POST"])
-def increment_views(id):
-    result = products.update_one(
-        {"_id": ObjectId(id)},
-        {"$inc": {"views": 1}}
-    )
-    
-    if result.modified_count:
-        return jsonify({"message": "View counted"}), 200
-    else:
-        return jsonify({"error": "Product not found"}), 404
