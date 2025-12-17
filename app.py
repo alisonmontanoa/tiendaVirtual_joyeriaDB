@@ -13,10 +13,10 @@ app = Flask(__name__,
 
 CORS(app)
 
-app.register_blueprint(products_bp, url_prefix="/api")
-app.register_blueprint(categories_bp, url_prefix="/api")
-app.register_blueprint(orders_bp, url_prefix="/api")
-app.register_blueprint(carts_bp, url_prefix="/api")
+app.register_blueprint(products_bp)
+app.register_blueprint(categories_bp)
+app.register_blueprint(orders_bp)
+app.register_blueprint(carts_bp)
 
 # Rutas para las nuevas paginas
 @app.route('/carrito')
@@ -37,7 +37,7 @@ def ordenes_page():
 
 @app.route('/categorias')
 def categorias_page():
-    return render_template("productos.html")  
+    return render_template("categorias.html")  
 
 @app.route('/ofertas')
 def ofertas_page():

@@ -1,6 +1,25 @@
 const API_URL = "http://127.0.0.1:5000";
 let cartId = localStorage.getItem('cartId') || null;
 
+// Si no existe un cartId, lo creamos
+if (!cartId) {
+    createCart();
+}
+
+async function createCart() {
+    try {
+        const response = await fetch(`${API_URL}/carts`, {
+            method: 'POST',
+        });
+        const data = await response.json();
+        cartId = data.id;  // Guardamos el cartId en el localStorage
+        localStorage.setItem('cartId', cartId);  // Guardamos el cartId
+        console.log('Carrito creado:', data);
+    } catch (error) {
+        console.error('Error creando el carrito:', error);
+    }
+}
+
 // Cargar categorias destacadas
 async function loadFeaturedCategories() {
     try {

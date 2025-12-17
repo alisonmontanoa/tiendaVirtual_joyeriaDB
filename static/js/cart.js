@@ -2,6 +2,25 @@ const API_URL = "http://127.0.0.1:5000";
 let cartId = localStorage.getItem('cartId');
 let currentCart = { items: [] };
 
+// Si no existe un cartId, lo creamos
+if (!cartId) {
+    createCart();
+}
+
+// Crear un carrito vacío
+async function createCart() {
+    try {
+        const response = await fetch(`${API_URL}/carts`, {
+            method: 'POST',
+        });
+        const data = await response.json();
+        localStorage.setItem('cartId', data.id);  // Guardamos el cartId en el localStorage
+        console.log('Carrito creado:', data);
+    } catch (error) {
+        console.error('Error creando el carrito:', error);
+    }
+}
+
 // Cargar carrito
 async function loadCart() {
     if (!cartId) {
@@ -20,14 +39,38 @@ async function loadCart() {
 
     try {
         const response = await fetch(`${API_URL}/carts/${cartId}`);
-        currentCart = await response.json();
-        
-        displayCartItems(currentCart.items);
-        updateCartTotal(calculateTotal(currentCart.items));
-        updateCartCount();
-        
+        if (!response.ok) {
+            throw new Error('Carrito no encontrado');
+        }
+        const cart = await response.json();
+        currentCart = cart;
+        displayCartItems(cart.items);
+        updateCartTotal(calculateTotal(cart.items));
     } catch (error) {
         console.error('Error cargando carrito:', error);
+        showAlert('Hubo un error al cargar tu carrito', 'error');
+    }
+}
+
+async function addToCart(productId) {
+    try {
+        const response = await fetch(`${API_URL}/carts/${cartId}/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                name: 'Product Name', // Asegúrate de pasar el nombre correcto
+                price: 100, // Asegúrate de pasar el precio correcto
+                quantity: 1 // Puedes definir la cantidad inicial
+            })
+        });
+        const data = await response.json();
+        console.log('Producto añadido al carrito:', data);
+        loadCart(); // Vuelve a cargar el carrito después de agregar el producto
+    } catch (error) {
+        console.error('Error añadiendo al carrito:', error);
     }
 }
 
@@ -86,58 +129,32 @@ function displayCartItems(items) {
 async function updateQuantity(itemIndex, change) {
     const item = currentCart.items[itemIndex];
     const newQuantity = item.quantity + change;
-    
+
     if (newQuantity < 1) {
-        removeFromCart(itemIndex);
+        removeFromCart(itemIndex); // Si la cantidad es menor a 1, eliminamos el producto
         return;
     }
-    
-    // Actualizar localmente
+
     item.quantity = newQuantity;
-    
-    // Actualizar en servidor (podría requerir endpoint específico)
-    await syncCartWithServer();
-    
-    // Actualizar vista
-    displayCartItems(currentCart.items);
-    updateCartTotal(calculateTotal(currentCart.items));
+
+    try {
+        await syncCartWithServer();  // Sincronizamos con el servidor
+        displayCartItems(currentCart.items);  // Actualizamos la vista
+        updateCartTotal(calculateTotal(currentCart.items));  // Actualizamos el total
+    } catch (error) {
+        console.error('Error actualizando la cantidad:', error);
+    }
 }
 
 // Remover del carrito
 async function removeFromCart(itemIndex) {
-    currentCart.items.splice(itemIndex, 1);
-    await syncCartWithServer();
-    loadCart();
-}
+    currentCart.items.splice(itemIndex, 1);  // Eliminamos el item del carrito
 
-// Sincronizar carrito con servidor
-async function syncCartWithServer() {
-    if (!cartId) return;
-    
     try {
-        // Primero vaciar carrito
-        await fetch(`${API_URL}/carts/${cartId}/clear`, {
-            method: 'PUT'
-        });
-        
-        // Luego agregar cada item actualizado
-        for (const item of currentCart.items) {
-            await fetch(`${API_URL}/carts/${cartId}/add`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: item.product_id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity
-                })
-            });
-        }
-        
+        await syncCartWithServer();  // Sincronizamos con el servidor
+        loadCart();  // Recargamos el carrito después de eliminar el producto
     } catch (error) {
-        console.error('Error sincronizando carrito:', error);
+        console.error('Error eliminando el producto:', error);
     }
 }
 

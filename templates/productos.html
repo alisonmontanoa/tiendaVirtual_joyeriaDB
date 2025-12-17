@@ -125,6 +125,31 @@
             loadProducts();
             loadCategories();
         };
+
+        // Función para agregar un producto al carrito
+        async function addToCart(productId) {
+            const product = {
+                product_id: productId,  // ID del producto
+                name: 'Collar de plata', // Nombre del producto (esto debe ser dinámico)
+                price: 129.99, // Precio del producto (esto debe ser dinámico)
+                quantity: 1  // Agregar 1 producto al carrito
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/carts/${cartId}/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
+                const data = await response.json();
+                console.log('Producto añadido al carrito:', data);
+                loadCart(); // Recargamos el carrito después de agregar el producto
+            } catch (error) {
+                console.error('Error añadiendo al carrito:', error);
+            }
+        }
     </script>
 </body>
 </html>

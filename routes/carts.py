@@ -8,7 +8,7 @@ client = MongoClient("mongodb://localhost:27017/")
 db = client["joyeria_db"]
 carts = db["carts"]
 
-# Crear un carrito vacio
+# Crear un carrito vacío
 @carts_bp.route("/carts", methods=["POST"])
 def create_cart():
     cart_id = carts.insert_one({
@@ -22,7 +22,6 @@ def create_cart():
 @carts_bp.route("/carts/<id>/add", methods=["POST"])
 def add_to_cart(id):
     data = request.json
-
     product = {
         "product_id": data["product_id"],
         "name": data["name"],
@@ -36,7 +35,6 @@ def add_to_cart(id):
     )
 
     return jsonify({"message": "Product added to cart"}), 200
-
 
 # Obtener carrito
 @carts_bp.route("/carts/<id>", methods=["GET"])

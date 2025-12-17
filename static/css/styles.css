@@ -76,30 +76,6 @@ body {
     color: var(--color-light);
 }
 
-.cart-btn {
-    position: relative;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--color-dark);
-}
-
-.cart-count {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: var(--color-danger);
-    color: white;
-    font-size: 0.8rem;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 /* Hero Section */
 .hero {
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
@@ -123,8 +99,8 @@ body {
     margin: 0 auto 2rem;
 }
 
-/* Productos Grid */
-.products-section {
+/* Categorías */
+.categories-section {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
@@ -135,6 +111,60 @@ body {
     margin-bottom: 3rem;
     color: var(--color-dark);
     font-size: 2.5rem;
+}
+
+/* Grilla de categorías */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.category-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 250px;
+}
+
+.category-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.category-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--color-dark);
+}
+
+.category-card p {
+    color: var(--color-gray);
+    font-size: 1rem;
+}
+
+.category-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.category-card-link:hover h3 {
+    color: var(--color-primary);
+}
+
+/* Productos Grid */
+.products-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .products-grid {
@@ -157,18 +187,6 @@ body {
 .product-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
-.product-badge {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: var(--color-primary);
-    color: white;
-    padding: 0.3rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
 }
 
 .product-img {
@@ -238,31 +256,6 @@ body {
     transform: translateY(-2px);
 }
 
-.btn-secondary {
-    background: var(--color-dark);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #333;
-}
-
-.btn-danger {
-    background: var(--color-danger);
-    color: white;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid var(--color-primary);
-    color: var(--color-primary);
-}
-
-.btn-outline:hover {
-    background: var(--color-primary);
-    color: white;
-}
-
 .btn-block {
     width: 100%;
     justify-content: center;
@@ -288,33 +281,6 @@ body {
     color: var(--color-primary);
     margin-bottom: 1.5rem;
     font-size: 1.3rem;
-}
-
-.footer-links {
-    list-style: none;
-}
-
-.footer-links li {
-    margin-bottom: 0.8rem;
-}
-
-.footer-links a {
-    color: #ccc;
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.footer-links a:hover {
-    color: var(--color-primary);
-    padding-left: 5px;
-}
-
-.footer-bottom {
-    text-align: center;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid #444;
-    color: #999;
 }
 
 /* Modal */

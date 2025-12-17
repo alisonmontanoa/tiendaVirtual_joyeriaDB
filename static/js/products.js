@@ -13,7 +13,6 @@ async function loadProducts(page = 1, limit = 12) {
         
         allProducts = products;
         filteredProducts = [...products];
-        
         displayProducts(page, limit);
         updatePagination();
         
