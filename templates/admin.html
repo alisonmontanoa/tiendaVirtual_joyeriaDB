@@ -11,245 +11,125 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-brand">
                 <h1><i class="fas fa-gem"></i> Admin Joyas</h1>
             </div>
-            <ul class="admin-menu">
-                <li>
-                    <a href="#dashboard" class="active" onclick="showSection('dashboard')">
-                        <i class="fas fa-dashboard"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="#products" onclick="showSection('products')">
-                        <i class="fas fa-box"></i> Productos
-                    </a>
-                </li>
-                <li>
-                    <a href="#categories" onclick="showSection('categories')">
-                        <i class="fas fa-tags"></i> Categorías
-                    </a>
-                </li>
-                <li>
-                    <a href="#orders" onclick="showSection('orders')">
-                        <i class="fas fa-shopping-bag"></i> Órdenes
-                    </a>
-                </li>
-                <li>
-                    <a href="#analytics" onclick="showSection('analytics')">
-                        <i class="fas fa-chart-bar"></i> Analytics
-                    </a>
-                </li>
-                <li style="margin-top: 2rem;">
-                    <a href="/" style="color: #ff6b6b;">
-                        <i class="fas fa-store"></i> Ir a Tienda
-                    </a>
+            <ul class="admin-menu" id="sideMenu">
+                <li><a href="#dashboard" class="active" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#products" onclick="showSection('products')"><i class="fas fa-box"></i> Productos</a></li>
+                <li><a href="#categories" onclick="showSection('categories')"><i class="fas fa-tags"></i> Categorías</a></li>
+                <li><a href="#orders" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Órdenes</a></li>
+                <li style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <a href="/" style="color: #ff6b6b;"><i class="fas fa-store"></i> Ir a Tienda</a>
                 </li>
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="admin-main">
-            <!-- Header -->
             <header class="admin-header">
-                <h2 id="sectionTitle">Dashboard</h2>
+                <h2 id="sectionTitle">Dashboard de Ventas</h2>
                 <div class="admin-actions">
-                    <button class="btn btn-primary" id="addBtn" style="display: none;">
-                        <i class="fas fa-plus"></i> Agregar
+                    <button class="btn btn-primary" id="globalAddBtn" style="display: none;" onclick="handleGlobalAdd()">
+                        <i class="fas fa-plus"></i> <span id="addBtnText">Agregar</span>
                     </button>
+                    <div class="admin-user">
+                        <span>Admin</span>
+                        <div class="avatar"><i class="fas fa-user"></i></div>
+                    </div>
                 </div>
             </header>
 
-            <!-- Content Sections -->
             <div class="admin-content">
-                <!-- Dashboard -->
+                <div id="loadingOverlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center; padding-top: 20%;">
+                    <i class="fas fa-spinner fa-spin fa-3x" style="color: #d4af37;"></i>
+                    <p style="margin-top: 1rem; font-weight: 500;">Procesando datos...</p>
+                </div>
+
                 <section id="dashboard" class="section-content">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon orders">
-                                <i class="fas fa-shopping-bag"></i>
-                            </div>
+                            <div class="stat-icon sales"><i class="fas fa-money-bill-wave"></i></div>
                             <div class="stat-info">
-                                <h3 id="totalOrders">0</h3>
-                                <p>Órdenes Totales</p>
+                                <h3 id="totalRevenue">Bs. 0</h3>
+                                <p>Ingresos Totales</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon products">
-                                <i class="fas fa-box"></i>
-                            </div>
+                            <div class="stat-icon orders"><i class="fas fa-shopping-cart"></i></div>
                             <div class="stat-info">
-                                <h3 id="totalProducts">0</h3>
-                                <p>Productos</p>
+                                <h3 id="totalSales">0</h3>
+                                <p>Ventas Exitosas</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon sales">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
+                            <div class="stat-icon users"><i class="fas fa-exclamation-triangle"></i></div>
                             <div class="stat-info">
-                                <h3 id="totalSales">Bs 0</h3>
-                                <p>Ventas Totales</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon users">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="totalViews">0</h3>
-                                <p>Visitas Totales</p>
+                                <h3 id="failedPayments">0</h3>
+                                <p>Pagos Fallidos</p>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Gráficos -->
-                    <div class="chart-container">
-                        <h3 class="chart-title">Ventas Mensuales</h3>
-                        <canvas id="salesChart"></canvas>
-                    </div>
-
-                    <!-- Últimas Órdenes -->
-                    <div class="table-container">
-                        <div class="table-header">
-                            <h3>Órdenes Recientes</h3>
-                            <button class="btn btn-outline" onclick="showSection('orders')">
-                                Ver Todas
-                            </button>
-                        </div>
-                        <table class="table" id="recentOrders">
-                            <thead>
-                                <tr>
-                                    <th>Orden #</th>
-                                    <th>Cliente</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se carga con JavaScript -->
-                            </tbody>
-                        </table>
+                    <div class="chart-container" style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <h3>Rendimiento de Ventas</h3>
+                        <canvas id="salesChart" height="100"></canvas>
                     </div>
                 </section>
 
-                <!-- Productos -->
                 <section id="products" class="section-content" style="display: none;">
                     <div class="table-container">
-                        <div class="table-header">
-                            <h3>Gestión de Productos</h3>
-                            <button class="btn btn-primary" onclick="showProductForm()">
-                                <i class="fas fa-plus"></i> Nuevo Producto
-                            </button>
-                        </div>
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>Imagen</th>
                                     <th>Producto</th>
                                     <th>Categoría</th>
                                     <th>Precio</th>
                                     <th>Vistas</th>
-                                    <th>Ventas</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="productsTable">
-                                <!-- Se carga con JavaScript -->
-                            </tbody>
+                            <tbody id="productsTable"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Categorías -->
                 <section id="categories" class="section-content" style="display: none;">
                     <div class="table-container">
-                        <div class="table-header">
-                            <h3>Gestión de Categorías</h3>
-                            <button class="btn btn-primary" onclick="showCategoryForm()">
-                                <i class="fas fa-plus"></i> Nueva Categoría
-                            </button>
-                        </div>
                         <table class="table">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Descripción</th>
-                                    <th>Productos</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="categoriesTable">
-                                <!-- Se carga con JavaScript -->
-                            </tbody>
+                            <tbody id="categoriesTable"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Órdenes -->
                 <section id="orders" class="section-content" style="display: none;">
                     <div class="table-container">
-                        <div class="table-header">
-                            <h3>Gestión de Órdenes</h3>
-                        </div>
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Orden #</th>
+                                    <th>Nro Orden</th>
+                                    <th>Cliente</th>
                                     <th>Total</th>
-                                    <th>Método Pago</th>
                                     <th>Estado</th>
                                     <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th>Detalle</th>
                                 </tr>
                             </thead>
-                            <tbody id="ordersTable">
-                                <!-- Se carga con JavaScript -->
-                            </tbody>
+                            <tbody id="ordersTableBody"></tbody>
                         </table>
-                    </div>
-                </section>
-
-                <!-- Analytics -->
-                <section id="analytics" class="section-content" style="display: none;">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3 id="totalVisits">0</h3>
-                                <p>Visitas Totales</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3 id="conversionRate">0%</h3>
-                                <p>Tasa de Conversión</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3 id="avgOrder">Bs 0</h3>
-                                <p>Ticket Promedio</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chart-container">
-                        <h3 class="chart-title">Productos Más Vistos</h3>
-                        <canvas id="viewsChart"></canvas>
-                    </div>
-
-                    <div class="chart-container">
-                        <h3 class="chart-title">Productos Más Vendidos</h3>
-                        <canvas id="salesChart2"></canvas>
                     </div>
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- Modal Producto -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -258,6 +138,7 @@
             </div>
             <div class="modal-body">
                 <form id="productForm">
+                    <input type="hidden" id="editProductId">
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Nombre</label>
@@ -270,78 +151,60 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descripción</label>
-                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                        <textarea class="form-control" id="productDescription" rows="2"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Categoría</label>
-                            <select class="form-control" id="productCategory" required>
-                                <!-- Se carga con JavaScript -->
-                            </select>
+                            <select class="form-control" id="productCategory" required></select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Tipo de Producto</label>
-                            <select class="form-control" id="productType">
-                                <option value="joya">Joya</option>
-                                <option value="reloj">Reloj</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Fotos (hasta 5 imágenes)</label>
-                            <input type="file" id="productPhotos" class="form-control" accept="image/*" multiple>
-                            <small>Puedes seleccionar varias imágenes.</small>
-                            <div id="photoPreview" class="preview-container"></div>
+                            <label class="form-label">Fotos (Múltiples)</label>
+                            <input type="file" id="productPhotos" class="form-control" accept="image/*" multiple onchange="previewImages()">
+                            <div id="photoPreview" style="display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap;"></div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Características (JSON)</label>
-                        <textarea class="form-control" id="productCharacteristics" rows="3"
-                                  placeholder='{"material": "oro", "quilate": "18k", "piedra": "diamante"}'></textarea>
+                        <label class="form-label">Características</label>
+                        <textarea class="form-control" id="productCharacteristics" placeholder="Escribe detalles (ej: Oro 14k)"></textarea>
+                        <small style="color: #888;">Puedes escribir texto normal o formato JSON.</small>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #eee;">
-                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">
-                    Cancelar
-                </button>
-                <button type="button" class="btn btn-primary" onclick="saveProduct()">
-                    Guardar Producto
-                </button>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveProduct()">Guardar Producto</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Categoría -->
     <div id="categoryModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="categoryModalTitle">Nueva Categoría</h3>
+                <h3>Nueva Categoría</h3>
                 <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="categoryForm">
                     <div class="form-group">
                         <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="categoryName" required>
+                        <input type="text" class="form-control" id="catName" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descripción</label>
-                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                        <textarea class="form-control" id="catDesc" rows="2"></textarea>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #eee;">
-                <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">
-                    Cancelar
-                </button>
-                <button type="button" class="btn btn-primary" onclick="saveCategory()">
-                    Guardar Categoría
-                </button>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveCategory()">Guardar</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/static/js/admin.js"></script>
 </body>
 </html>
