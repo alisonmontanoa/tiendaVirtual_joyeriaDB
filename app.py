@@ -3,6 +3,7 @@ from routes.products import products_bp
 from routes.categories import categories_bp
 from routes.carts import carts_bp
 from routes.orders import orders_bp
+from routes.users import users_bp  # NUEVO: Importamos el blueprint de usuarios
 from flask_cors import CORS
 import os
 
@@ -11,16 +12,35 @@ app = Flask(__name__,
             static_folder="static",
             static_url_path="/static")
 
-#dwqw
-
+# Configuración de CORS para permitir peticiones desde el frontend
 CORS(app)
 
+# Registro de Blueprints de la API
 app.register_blueprint(products_bp, url_prefix="/api")
 app.register_blueprint(categories_bp, url_prefix="/api")
 app.register_blueprint(orders_bp, url_prefix="/api")
 app.register_blueprint(carts_bp, url_prefix="/api")
+app.register_blueprint(users_bp, url_prefix="/api") # NUEVO: Registro de rutas de autenticación
 
-# Rutas para las nuevas paginas
+# ============================
+#  RUTAS PARA LAS PÁGINAS
+# ============================
+
+@app.route('/')
+def user_panel():
+    """Página principal de la tienda."""
+    return render_template("user.html")
+
+@app.route('/login')
+def login_page():
+    """NUEVO: Página de inicio de sesión para el administrador."""
+    return render_template("login.html")
+
+@app.route('/admin')
+def admin_panel():
+    """Página del panel de administración."""
+    return render_template("admin.html")
+
 @app.route('/carrito')
 def carrito_page():
     return render_template("carrito.html")
@@ -49,24 +69,21 @@ def ofertas_page():
 def contacto_page():
     return render_template("contacto.html")
 
-# Servir archivos estaticos
+# Servir archivos estáticos (imágenes de productos)
 @app.route('/static/images/<path:filename>')
 def serve_images(filename):
     return send_from_directory('static/images', filename)
 
-# Pagina del administrador
-@app.route('/admin')
-def admin_panel():
-    return render_template("admin.html")
-
-# Pagina del usuario
-@app.route('/')
-def user_panel():
-    return render_template("user.html")
+# ============================
+#  EJECUCIÓN DEL SERVIDOR
+# ============================
 
 if __name__ == '__main__':
-    # Crear carpeta de imagenes si no existe
-    if not os.path.exists('static/images'):
-        os.makedirs('static/images')
+    # Crear estructura de carpetas si no existe
+    folders = ['static/images', 'static/images/products']
+    for folder in folders:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
     
+    # Ejecutar en modo debug para desarrollo
     app.run(debug=True, port=5000)

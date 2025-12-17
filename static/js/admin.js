@@ -1,6 +1,13 @@
 const API_URL = "http://localhost:5000/api";
 let currentCharts = {};
 
+(function comprobarAcceso() {
+    if (localStorage.getItem('admin_logueado') !== 'si') {
+        // Si no has iniciado sesión, te expulsa al login
+        window.location.href = '/login';
+    }
+})();
+
 // =========================
 // 1. NAVEGACIÓN Y DASHBOARD
 // =========================
@@ -285,6 +292,19 @@ function previewImages() {
         };
         reader.readAsDataURL(file);
     });
+}
+function cerrarSesion() {
+    localStorage.removeItem('admin_logueado'); // Borra el permiso
+    window.location.href = '/login'; // Te manda al login
+}
+
+// Función para cerrar sesión
+function logout() {
+    // 1. Borramos la "llave" de acceso del navegador
+    localStorage.clear(); 
+    
+    // 2. Te enviamos de vuelta a la puerta de entrada
+    window.location.href = '/login';
 }
 
 function toggleLoading(show) { document.getElementById("loadingOverlay").style.display = show ? "block" : "none"; }
