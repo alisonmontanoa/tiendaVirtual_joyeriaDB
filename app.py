@@ -11,6 +11,8 @@ app = Flask(__name__,
             static_folder="static",
             static_url_path="/static")
 
+#dwqw
+
 CORS(app)
 
 app.register_blueprint(products_bp, url_prefix="/api")
