@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso Admin - Joyas Elegantes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo para que se vea profesional y centrado */
+        body {
+            background: #f4f1ea; /* Color crema suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        h2 { color: #b8962d; margin-bottom: 25px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Evita que el input se salga del cuadro */
+        }
+        button {
+            background: #b8962d;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #967a24; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <i class="fas fa-gem fa-3x" style="color: #b8962d;"></i>
+        <h2>Admin Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Si la contraseña es correcta, guardamos la "sesión" y entramos
+                localStorage.setItem('admin_logueado', 'si');
+                window.location.href = '/admin';
+            } else {
+                Swal.fire('Error', 'Usuario o contraseña incorrectos', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
