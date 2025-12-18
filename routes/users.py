@@ -1,13 +1,12 @@
 from flask import Blueprint, request, jsonify
-from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
+from database import db  
 
 users_bp = Blueprint("users", __name__)
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client["joyeria_db"]
-users_col = db["users"] 
+# Obtener colección de usuarios
+users_col = db.get_collection("users")
 
 # ============================
 #   REGISTRO INICIAL (Solo para ti)

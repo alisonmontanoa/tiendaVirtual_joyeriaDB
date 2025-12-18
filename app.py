@@ -1,9 +1,10 @@
+from database import db
 from flask import Flask, render_template, send_from_directory
 from routes.products import products_bp
 from routes.categories import categories_bp
 from routes.carts import carts_bp
 from routes.orders import orders_bp
-from routes.users import users_bp  # NUEVO: Importamos el blueprint de usuarios
+from routes.users import users_bp  
 from flask_cors import CORS
 import os
 
@@ -12,15 +13,14 @@ app = Flask(__name__,
             static_folder="static",
             static_url_path="/static")
 
-# Configuración de CORS para permitir peticiones desde el frontend
 CORS(app)
 
 # Registro de Blueprints de la API
-app.register_blueprint(products_bp, url_prefix="/api")
-app.register_blueprint(categories_bp, url_prefix="/api")
-app.register_blueprint(orders_bp, url_prefix="/api")
-app.register_blueprint(carts_bp, url_prefix="/api")
-app.register_blueprint(users_bp, url_prefix="/api") # NUEVO: Registro de rutas de autenticación
+app.register_blueprint(products_bp)
+app.register_blueprint(categories_bp)
+app.register_blueprint(orders_bp)
+app.register_blueprint(carts_bp)
+app.register_blueprint(users_bp)
 
 # ============================
 #  RUTAS PARA LAS PÁGINAS

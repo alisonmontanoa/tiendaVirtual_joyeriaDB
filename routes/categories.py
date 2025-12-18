@@ -1,15 +1,13 @@
 from flask import Blueprint, request, jsonify
-from pymongo import MongoClient
 from bson import ObjectId
-from datetime import datetime # MEJORA: Para registrar cuándo se crean/editan
+from datetime import datetime
+from database import db  
 
 categories_bp = Blueprint("categories", __name__)
 
-# Configuración de base de datos
-client = MongoClient("mongodb://localhost:27017/")
-db = client["joyeria_db"]
-categories_collection = db["categories"]
-products_collection = db["products"] # MEJORA: Necesario para validar antes de eliminar
+# Obtener colecciones usando la conexión centralizada
+categories_collection = db.get_collection("categories")
+products_collection = db.get_collection("products")
 
 # ============================
 #   CREAR CATEGORÍA (MEJORADO)
@@ -79,9 +77,9 @@ def update_category(id):
 @categories_bp.route("/categories/<id>", methods=["DELETE"])
 def delete_category(id):
     try:
-        # MEJORA CRÍTICA: Impedir borrar categorías que tengan productos asignados.
+        # Impedir borrar categorías que tengan productos asignados.
         # Esto evita que tu tienda intente mostrar un producto con una categoría inexistente.
-        product_count = products_collection.count_documents({"category_id": id})
+        product_count = products_collection.count_documents({"category_id": ObjectId(id)})
         if product_count > 0:
             return jsonify({
                 "error": f"No se puede eliminar: hay {product_count} productos asociados a esta categoría."

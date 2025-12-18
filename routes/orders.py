@@ -1,18 +1,15 @@
 from flask import Blueprint, request, jsonify
-from pymongo import MongoClient
 from bson import ObjectId
 import random
 from datetime import datetime
+from database import db  
 
 orders_bp = Blueprint("orders", __name__)
 
-# Configuración de base de datos
-client = MongoClient("mongodb://localhost:27017/")
-db = client["joyeria_db"]
-
-orders = db["orders"]
-carts = db["carts"]
-products = db["products"]
+# Obtener colecciones
+orders = db.get_collection("orders")
+carts = db.get_collection("carts")
+products = db.get_collection("products")
 
 # ============================
 #   UTILIDADES

@@ -1,4 +1,7 @@
 const API_URL = "http://127.0.0.1:5000";
+let currentPage = 1;
+let allProducts = [];
+let filteredProducts = [];
 
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -8,46 +11,24 @@ function getQueryParam(param) {
 // Cargar productos
 async function loadProducts(page = 1, limit = 12) {
     try {
-        const response = await fetch(`${API_URL}/products`);
+        const categoryId = getQueryParam("category");
+
+        let url = `${API_URL}/products`;
+        if (categoryId) {
+            url += `?category=${categoryId}`;
+        }
+
+        const response = await fetch(url);
         const products = await response.json();
         
         allProducts = products;
         filteredProducts = [...products];
-        displayProducts(page, limit);
+
+        displayProducts(currentPage, limit);
         updatePagination();
         
     } catch (error) {
         console.error('Error cargando productos:', error);
-    }
-}
-
-async function loadProductsPage() {
-    const categoryId = getQueryParam("category");
-
-    let url;
-
-    if (categoryId) {
-        // MOSTRAR SOLO LOS PRODUCTOS DE ESA CATEGORIA
-        url = `${API_URL}/products/category/${categoryId}`;
-    } else {
-        // MOSTRAR TODOS LOS PRODUCTOS
-        url = `${API_URL}/products`;
-    }
-
-    try {
-        const response = await fetch(url);
-        const products = await response.json();
-
-        const container = document.getElementById("products-grid");
-        container.innerHTML = "";
-
-        products.forEach(product => {
-            const card = createProductCard(product);
-            container.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Error cargando productos:", error);
     }
 }
 
@@ -131,6 +112,11 @@ async function loadCategories() {
                 option.textContent = category.name;
                 select.appendChild(option);
             });
+
+            const selectedCategory = getQueryParam("category");
+            if (selectedCategory) {
+                select.value = selectedCategory;
+            }
         }
         
     } catch (error) {
@@ -160,7 +146,7 @@ function filterProducts() {
         filteredProducts = [...allProducts];
     } else {
         filteredProducts = allProducts.filter(product => 
-            product.category_id === categoryId
+        String(product.category_id) === categoryId
         );
     }
     
@@ -209,8 +195,6 @@ function updatePagination() {
     document.getElementById('prevPage').disabled = currentPage <= 1;
     document.getElementById('nextPage').disabled = currentPage >= totalPages;
     document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
-    
-    totalPages = totalPages; // Actualizar variable global
 }
 
 // Cargar detalle del producto
@@ -272,11 +256,6 @@ async function loadProductDetail(productId) {
             });
         }
         
-        // Registrar vista
-        await fetch(`${API_URL}/products/${productId}/view`, {
-            method: 'POST'
-        });
-        
         // Cargar productos relacionados (misma categoría)
         loadRelatedProducts(product.category_id, productId);
         
@@ -284,11 +263,20 @@ async function loadProductDetail(productId) {
         console.error('Error cargando detalle del producto:', error);
     }
 }
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+
+    if (productId && document.getElementById("productTitle")) {
+        loadProductDetail(productId);
+    }
+});
+
 
 // Cargar productos relacionados
 async function loadRelatedProducts(categoryId, excludeId) {
     try {
-        const response = await fetch(`${API_URL}/products/category/${categoryId}`);
+        const response = await fetch(`${API_URL}/products?category=${categoryId}`);
         const products = await response.json();
         
         const container = document.getElementById('relatedProducts');
@@ -317,11 +305,6 @@ async function loadRelatedProducts(categoryId, excludeId) {
 // Funciones auxiliares
 function viewProductDetail(productId) {
     window.location.href = `/producto_detalle.html?id=${productId}`;
-}
-
-async function addToCart(productId, productName, productPrice) {
-    // Similar a la función en user.js
-    // Implementar según necesidad
 }
 
 // Inicializar

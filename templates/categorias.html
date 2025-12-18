@@ -43,7 +43,7 @@
         // Cargar categorías desde el backend
         async function loadCategories() {
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/categories');
+                const response = await fetch('http://127.0.0.1:5000/categories');
                 const categories = await response.json();
                 const container = document.getElementById('categoriesGrid');
 

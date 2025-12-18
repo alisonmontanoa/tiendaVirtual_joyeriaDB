@@ -1,27 +1,19 @@
 from flask import Blueprint, request, jsonify
-from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
 import json
+from database import db  
 
 products_bp = Blueprint("products", __name__)
-
-# Configuración de base de datos
-client = MongoClient("mongodb://localhost:27017/")
-db = client["joyeria_db"]
-products = db["products"]
-categories = db["categories"]
 
 # ==========================================
 # CONFIGURACIÓN DE CARPETA DE IMÁGENES
 # ==========================================
-# Detecta la ruta base del proyecto de forma automática (funciona en Windows/Mac/Linux)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'images', 'products')
 
-# CORRECCIÓN: Agregamos 'avif' y 'webp' a la lista de permitidos
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "avif"}
 
 # Crear la carpeta automáticamente si no existe
@@ -31,6 +23,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Obtener colecciones
+products = db.get_collection("products")
+categories = db.get_collection("categories")
+
 # ============================
 #   CREAR PRODUCTO (POST)
 # ============================
@@ -39,13 +35,11 @@ def create_product():
     try:
         data = request.form
         
-        # MEJORA: Procesamiento flexible de características (JSON o Texto)
+        # Procesar características
         char_raw = data.get("characteristics", "{}")
         try:
-            # Si el usuario envió un JSON válido, lo convertimos a diccionario
             characteristics_dict = json.loads(char_raw)
         except:
-            # Si envió texto normal, lo guardamos como un detalle simple
             characteristics_dict = {"detalle": char_raw}
 
         # Procesar Imágenes
@@ -53,27 +47,21 @@ def create_product():
         if "photos" in request.files:
             files = request.files.getlist("photos")
             for file in files:
-                # Verificamos si el archivo tiene nombre y extensión permitida (AVIF incluido)
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    
-                    # Usamos timestamp para evitar nombres duplicados
                     timestamp = int(datetime.now().timestamp())
                     new_filename = f"{timestamp}_{filename}"
-                    
-                    # 1. Guardar físicamente en el disco
                     save_path = os.path.join(UPLOAD_FOLDER, new_filename)
                     file.save(save_path)
-                    
-                    # 2. Guardar URL para la web (OJO: Siempre usa / para rutas web)
                     web_url = f"/static/images/products/{new_filename}"
                     photos_list.append(web_url)
 
+        # Crear nuevo producto
         new_product = {
             "name": data.get("name"),
             "description": data.get("description", ""),
             "price": float(data.get("price", 0)),
-            "category_id": data.get("category_id"),
+            "category_id": ObjectId(data.get("category_id")),  # Asegúrate de convertir el ID de categoría en ObjectId
             "type": data.get("type", "joya"),
             "photos": photos_list,
             "characteristics": characteristics_dict,
@@ -95,11 +83,21 @@ def create_product():
 @products_bp.route("/products", methods=["GET"])
 def get_products():
     try:
+        category_id = request.args.get('category')  # Obtiene el id de la categoría de la query string
+        query = {}
+
+        if category_id:
+            query["category_id"] = ObjectId(category_id)  # Filtrar por categoría
+
         result = []
-        # Ordenamos por los más recientes creados
-        for prod in products.find().sort("created_at", -1):
+        for prod in products.find(query).sort("created_at", -1):
             prod["_id"] = str(prod["_id"])
+
+            if "category_id" in prod and isinstance(prod["category_id"], ObjectId):
+                prod["category_id"] = str(prod["category_id"])
+                
             result.append(prod)
+
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -120,7 +118,7 @@ def update_product(id):
         # Si se envían nuevas fotos, reemplazamos las anteriores
         if "photos" in request.files:
             new_photos = request.files.getlist("photos")
-            updated_photos = [] 
+            updated_photos = []  # Si hay nuevas fotos, las reemplazamos por completo
             for file in new_photos:
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
@@ -129,17 +127,17 @@ def update_product(id):
 
         char_raw = data.get("characteristics")
         
+        cat_id = data.get("category_id")
         updated_fields = {
             "name": data.get("name", product["name"]),
             "description": data.get("description", product.get("description", "")),
             "price": float(data.get("price", product["price"])),
-            "category_id": data.get("category_id", product.get("category_id")),
+            "category_id": ObjectId(cat_id) if cat_id else product.get("category_id"),
             "type": data.get("type", product.get("type", "joya")),
             "photos": updated_photos,
             "updated_at": datetime.now()
         }
         
-        # Procesamiento seguro de características en actualización
         if char_raw:
             try:
                 updated_fields["characteristics"] = json.loads(char_raw)
@@ -152,7 +150,7 @@ def update_product(id):
         return jsonify({"error": str(e)}), 400
 
 # ============================
-#   ELIMINAR PRODUCTO (CON LIMPIEZA)
+#   ELIMINAR PRODUCTO
 # ============================
 @products_bp.route("/products/<id>", methods=["DELETE"])
 def delete_product(id):
@@ -188,6 +186,47 @@ def get_product(id):
         products.update_one({"_id": ObjectId(id)}, {"$inc": {"views": 1}})
         
         product["_id"] = str(product["_id"])
+        if "category_id" in product and isinstance(product["category_id"], ObjectId):
+            product["category_id"] = str(product["category_id"])
         return jsonify(product), 200
     except:
         return jsonify({"error": "Invalid ID format"}), 400
+    
+# ============================
+#   PRODUCTO MAS VISTO
+# ============================    
+@products_bp.route("/products/most-viewed", methods=["GET"])
+def get_most_viewed_products():
+    try:
+        result = []
+        for prod in products.find().sort("views", -1).limit(6):  # Mostrar los 6 más vistos
+            prod["_id"] = str(prod["_id"])
+            if "category_id" in prod and isinstance(prod["category_id"], ObjectId):
+                prod["category_id"] = str(prod["category_id"])
+
+            result.append(prod)
+
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================
+#   PRODUCTOS MÁS VENDIDOS
+# ============================
+@products_bp.route("/products/best-sellers", methods=["GET"])
+def get_best_sellers():
+    try:
+        limit = int(request.args.get("limit", 4))
+        result = []
+
+        for prod in products.find().sort("purchases", -1).limit(limit):
+            prod["_id"] = str(prod["_id"])
+            if "category_id" in prod and isinstance(prod["category_id"], ObjectId):
+                prod["category_id"] = str(prod["category_id"])
+            
+
+            result.append(prod)
+
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
