@@ -30,41 +30,6 @@ async function createCart() {
 // Cargar carrito
 async function loadCart() {
     try {
-<<<<<<< HEAD
-        const response = await fetch(`${API_URL}/carts/${cartId}`);
-        if (!response.ok) {
-            throw new Error('Carrito no encontrado');
-        }
-        const cart = await response.json();
-        currentCart = cart;
-        displayCartItems(cart.items);
-        updateCartTotal(calculateTotal(cart.items));
-    } catch (error) {
-        console.error('Error cargando carrito:', error);
-        showAlert('Hubo un error al cargar tu carrito', 'error');
-    }
-}
-
-async function addToCart(productId) {
-    try {
-        const response = await fetch(`${API_URL}/carts/${cartId}/add`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                product_id: productId,
-                name: 'Product Name', // Asegúrate de pasar el nombre correcto
-                price: 100, // Asegúrate de pasar el precio correcto
-                quantity: 1 // Puedes definir la cantidad inicial
-            })
-        });
-        const data = await response.json();
-        console.log('Producto añadido al carrito:', data);
-        loadCart(); // Vuelve a cargar el carrito después de agregar el producto
-    } catch (error) {
-        console.error('Error añadiendo al carrito:', error);
-=======
         // Usamos la ruta corregida en app.py
         const response = await fetch(`${API_URL}/api/carts/${cartId}`);
         if (!response.ok) throw new Error("Error al conectar con el servidor");
@@ -78,7 +43,6 @@ async function addToCart(productId) {
     } catch (error) {
         console.error('Error cargando carrito:', error);
         document.getElementById('cartTable').innerHTML = `<tr><td colspan="5">Error cargando el carrito. Asegúrate que app.py esté corriendo.</td></tr>`;
->>>>>>> origin/Prueba1
     }
 }
 
@@ -135,38 +99,6 @@ function displayCartItems(items) {
     });
 }
 
-<<<<<<< HEAD
-// Actualizar cantidad
-async function updateQuantity(itemIndex, change) {
-    const item = currentCart.items[itemIndex];
-    const newQuantity = item.quantity + change;
-
-    if (newQuantity < 1) {
-        removeFromCart(itemIndex); // Si la cantidad es menor a 1, eliminamos el producto
-        return;
-    }
-
-    item.quantity = newQuantity;
-
-    try {
-        await syncCartWithServer();  // Sincronizamos con el servidor
-        displayCartItems(currentCart.items);  // Actualizamos la vista
-        updateCartTotal(calculateTotal(currentCart.items));  // Actualizamos el total
-    } catch (error) {
-        console.error('Error actualizando la cantidad:', error);
-    }
-}
-
-// Remover del carrito
-async function removeFromCart(itemIndex) {
-    currentCart.items.splice(itemIndex, 1);  // Eliminamos el item del carrito
-
-    try {
-        await syncCartWithServer();  // Sincronizamos con el servidor
-        loadCart();  // Recargamos el carrito después de eliminar el producto
-    } catch (error) {
-        console.error('Error eliminando el producto:', error);
-=======
 // Remover del carrito (CORREGIDO)
 async function removeFromCart(productId) {
     if(!confirm("¿Estás seguro de eliminar este producto?")) return;
@@ -193,7 +125,6 @@ async function removeFromCart(productId) {
     } catch (error) {
         console.error('Error al eliminar:', error);
         showAlert('Error de conexión', 'error');
->>>>>>> origin/Prueba1
     }
 }
 

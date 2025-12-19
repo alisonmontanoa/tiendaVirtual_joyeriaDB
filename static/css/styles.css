@@ -452,10 +452,6 @@ body {
         grid-template-columns: 1fr;
     }
 }
-<<<<<<< HEAD
-=======
-
-/*agregado*/
 
 /* =========================================
    NUEVO DISEÑO DE LA COLECCIÓN Y BRILLOS
@@ -583,4 +579,3 @@ body {
     from { background-position: 0 0, 20px 20px; }
     to   { background-position: 0 40px, 20px 60px; }
 }
->>>>>>> origin/Prueba1

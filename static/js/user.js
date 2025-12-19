@@ -3,32 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
 });
 
-<<<<<<< HEAD
-// Si no existe un cartId, lo creamos
-if (!cartId) {
-    createCart();
-}
-
-async function createCart() {
-    try {
-        const response = await fetch(`${API_URL}/carts`, {
-            method: 'POST',
-        });
-        const data = await response.json();
-        cartId = data.id;  // Guardamos el cartId en el localStorage
-        localStorage.setItem('cartId', cartId);  // Guardamos el cartId
-        console.log('Carrito creado:', data);
-    } catch (error) {
-        console.error('Error creando el carrito:', error);
-    }
-}
-
-// Cargar categorias destacadas
-async function loadFeaturedCategories() {
-=======
 // Función para obtener productos de Python y mostrarlos
 async function loadProducts() {
->>>>>>> origin/Prueba1
     try {
         const response = await fetch('/api/products');
         const products = await response.json();
