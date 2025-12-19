@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, jsonify, request, session
+from flask import Flask, render_template, send_from_directory, jsonify, request
 from flask_cors import CORS
 import os
 
@@ -10,24 +10,10 @@ app = Flask(__name__,
 app.secret_key = 'clave_secreta_para_carrito'
 CORS(app)
 
-# --- BLUEPRINTS COMENTADOS (Para evitar conflictos y errores 404) ---
-# from routes.products import products_bp
-# from routes.categories import categories_bp
-# from routes.carts import carts_bp
-# from routes.orders import orders_bp
-# from routes.users import users_bp
-
-# app.register_blueprint(products_bp, url_prefix="/api")
-# app.register_blueprint(categories_bp, url_prefix="/api")
-# app.register_blueprint(orders_bp, url_prefix="/api")
-# app.register_blueprint(carts_bp, url_prefix="/api")
-# app.register_blueprint(users_bp, url_prefix="/api")
-
 # ==========================================
-#  BASE DE DATOS Y RUTAS MANUALES
+#  BASE DE DATOS SIMULADA
 # ==========================================
 
-# IMPORTANTE: Asegúrate de que estos archivos existan en static/images/products/
 products_db = [
     {
         "id": 1, 
@@ -62,13 +48,12 @@ products_db = [
 # Almacén de carritos en memoria
 carts_storage = {}
 
-# --- RUTA PARA PRODUCTOS (Soluciona el error 404) ---
+# --- RUTAS API (BACKEND) ---
+
 @app.route('/api/products', methods=['GET'])
 def get_products_fix():
-    print("¡Solicitud recibida en /api/products!") 
     return jsonify(products_db)
 
-# --- RUTAS PARA EL CARRITO ---
 @app.route('/api/carts/<cart_id>', methods=['GET'])
 def get_cart_fix(cart_id):
     cart = carts_storage.get(cart_id, {"items": []})
@@ -80,7 +65,6 @@ def add_to_cart_fix(cart_id):
     if cart_id not in carts_storage:
         carts_storage[cart_id] = {"items": []}
     
-    # Buscar si ya existe para sumar cantidad
     found = False
     for item in carts_storage[cart_id]["items"]:
         if item["product_id"] == data["product_id"]:
@@ -88,7 +72,6 @@ def add_to_cart_fix(cart_id):
             found = True
             break
     
-    # Si es nuevo, lo agregamos
     if not found:
         product_info = next((p for p in products_db if p["id"] == data["product_id"]), None)
         if product_info:
@@ -100,30 +83,22 @@ def add_to_cart_fix(cart_id):
                 "image": product_info["image"]
             }
             carts_storage[cart_id]["items"].append(new_item)
-
     return jsonify(carts_storage[cart_id])
 
 @app.route('/api/carts/<cart_id>/remove', methods=['POST'])
 def remove_from_cart_fix(cart_id):
     data = request.json
     product_id_to_remove = data.get('product_id')
-    
     if cart_id in carts_storage:
-        # Recreamos la lista EXCLUYENDO el producto que queremos borrar
-        original_count = len(carts_storage[cart_id]["items"])
         carts_storage[cart_id]["items"] = [
             item for item in carts_storage[cart_id]["items"] 
             if item["product_id"] != product_id_to_remove
         ]
-        
-        if len(carts_storage[cart_id]["items"]) < original_count:
-             return jsonify({"success": True, "message": "Producto eliminado", "cart": carts_storage[cart_id]})
-        else:
-             return jsonify({"success": False, "message": "Producto no encontrado en el carrito"})
-
+        return jsonify({"success": True, "cart": carts_storage[cart_id]})
     return jsonify({"success": False, "error": "Carrito no encontrado"}), 404
 
-# --- RUTAS DE PÁGINAS WEB ---
+# --- RUTAS DE PÁGINAS WEB (FRONTEND) ---
+
 @app.route('/')
 def user_panel(): return render_template("user.html")
 
@@ -133,20 +108,24 @@ def carrito_page(): return render_template("carrito.html")
 @app.route('/productos')
 def productos_page(): return render_template("productos.html")
 
-# Sirve las imágenes y archivos estáticos
+@app.route('/contacto')
+def contacto_page(): return render_template("contacto.html")
+
+# --- ¡AQUÍ ESTABAN FALTANDO ESTAS RUTAS! ---
+@app.route('/admin')
+def admin_panel():
+    return render_template("admin.html")
+
+@app.route('/login')
+def login_page():
+    return render_template("login.html")
+# -------------------------------------------
+
+# Servir archivos estáticos por si acaso
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)
 
 if __name__ == '__main__':
-    # Crear carpetas si no existen
-    folders = ['static/images/products']
-    for folder in folders:
-        if not os.path.exists(folder):
-            try:
-                os.makedirs(folder)
-            except:
-                pass
-            
-    print("--- SERVIDOR INICIADO EN PUERTO 5000 ---")
+    print("--- SERVIDOR LISTO EN PUERTO 5000 ---")
     app.run(debug=True, port=5000)
