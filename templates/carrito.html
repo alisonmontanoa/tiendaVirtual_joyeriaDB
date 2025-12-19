@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras - Joyería</title>
+    <title>Carrito de Compras - Joyas Elegantes</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <nav class="navbar">
             <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Joyas Elegantes
+                <i class="fas fa-gem"></i> Joyas Elegantes
             </a>
             <div class="nav-links">
                 <a href="/" class="nav-link">Inicio</a>
                 <a href="/productos" class="nav-link">Productos</a>
-                <a href="/carrito" class="nav-link active">Carrito</a>
+                <button class="cart-btn" onclick="window.location.href='/carrito'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
             </div>
         </nav>
     </header>
@@ -44,17 +45,8 @@
                     </tr>
                 </thead>
                 <tbody id="cartTable">
-                    <!-- Items del carrito se cargan con JavaScript -->
+                    <tr><td colspan="5" style="text-align:center;">Cargando tu carrito...</td></tr>
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
-                        <td id="cartTotalPrice" style="font-size: 1.2rem; color: var(--color-primary); font-weight: bold;">
-                            Bs 0.00
-                        </td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
         </div>
 
@@ -62,18 +54,9 @@
             <button class="btn btn-outline" onclick="window.location.href='/productos'">
                 <i class="fas fa-arrow-left"></i> Seguir Comprando
             </button>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-danger" onclick="clearCart()">
-                    <i class="fas fa-trash"></i> Vaciar Carrito
-                </button>
-                <button class="btn btn-primary" onclick="proceedToCheckout()">
-                    Proceder al Pago <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
         </div>
 
-        <!-- Resumen de la Orden -->
-        <div class="table-container" style="margin-top: 3rem;">
+        <div class="table-container" style="margin-top: 3rem; max-width: 500px; margin-left: auto;">
             <div class="table-header">
                 <h3>Resumen de la Orden</h3>
             </div>
@@ -84,80 +67,39 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                     <span>Envío:</span>
-                    <span id="orderShipping">Bs 15.00</span>
+                    <span style="color: green;">Gratis</span>
                 </div>
                 <hr style="margin: 1rem 0;">
-                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: #d4af37;">
                     <span>Total:</span>
-                    <span id="orderTotal">Bs 15.00</span>
+                    <span id="orderTotal">Bs 0.00</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Información de Pago -->
-        <div class="table-container" style="margin-top: 2rem;">
-            <div class="table-header">
-                <h3>Información de Pago</h3>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label">Método de Pago</label>
-                    <select class="form-control" id="paymentMethod">
-                        <option value="credit_card">Tarjeta de Crédito</option>
-                        <option value="debit_card">Tarjeta de Débito</option>
-                        <option value="paypal">PayPal</option>
-                        <option value="transfer">Transferencia Bancaria</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary btn-block" onclick="createOrder()" style="margin-top: 1rem;">
-                    <i class="fas fa-lock"></i> Completar Compra
+                <span id="cartTotalPrice" style="display:none"></span>
+                
+                <button class="btn btn-primary btn-block" style="margin-top: 1.5rem;" onclick="alert('Funcionalidad de pago en construcción')">
+                    Proceder al Pago <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
     </main>
 
-    <!-- Modal de Confirmación de Orden -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="orderModalTitle">Confirmación de Orden</h3>
-                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="orderSuccess" style="display: none;">
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                        <h3 style="margin: 1rem 0;">¡Orden Completada Exitosamente!</h3>
-                        <p>Tu orden ha sido procesada correctamente.</p>
-                        <p><strong>Número de Orden:</strong> <span id="orderNumber"></span></p>
-                        <p><strong>Total:</strong> <span id="orderTotalConfirm"></span></p>
-                        <p>Recibirás un correo de confirmación en breve.</p>
-                    </div>
-                </div>
-                <div id="orderError" style="display: none;">
-                    <div class="alert alert-error">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                        <h3 style="margin: 1rem 0;">Error en el Pago</h3>
-                        <p id="orderErrorMessage">Hubo un problema procesando tu pago. Por favor intenta nuevamente.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #eee;">
-                <button class="btn btn-primary" onclick="closeOrderModal()">
-                    Continuar Comprando
-                </button>
-            </div>
-        </div>
-    </div>
-
     <footer class="footer">
         <div class="footer-content">
-            <!-- Footer igual que en user.html -->
+            <div class="footer-section">
+                <h3>Joyas Elegantes</h3>
+                <p>Calidad y distinción en cada pieza.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>info@joyaselegantes.com</p>
+            </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
+            <p>&copy; 2025 Joyas Elegantes.</p>
         </div>
     </footer>
+
+    <div id="cartModal" class="modal" style="display:none !important;"></div>
 
     <script src="/static/js/cart.js"></script>
 </body>

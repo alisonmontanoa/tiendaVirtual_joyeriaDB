@@ -1,0 +1,28 @@
+# ===== Entorno virtual =====
+venv/
+.env/
+.env.local/
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== Flask =====
+instance/
+*.log
+
+# ===== VS Code =====
+.vscode/
+
+# ===== Sistema =====
+.DS_Store
+Thumbs.db
+
+# ===== MongoDB / dumps =====
+*.bson
+*.json
+
+# ===== Uploads temporales (opcional) =====
+static/images/tmp/

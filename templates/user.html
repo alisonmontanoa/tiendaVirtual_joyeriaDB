@@ -3,26 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joyas Elegantes - Tienda Online</title>
+    <title>Joyas Elegantes - Inicio</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <nav class="navbar">
-            <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Joyas Elegantes
-            </a>
+            <a href="/" class="logo"><i class="fas fa-gem"></i> Joyas Elegantes</a>
             <div class="nav-links">
                 <a href="/" class="nav-link active">Inicio</a>
                 <a href="/productos" class="nav-link">Productos</a>
-                <a href="/categorias" class="nav-link">Categorías</a>
-                <a href="/ofertas" class="nav-link">Ofertas</a>
+                <a href="/carrito" class="nav-link">Carrito</a>
                 <a href="/contacto" class="nav-link">Contacto</a>
-                <button class="cart-btn" onclick="openCart()">
+                <button class="cart-btn" onclick="window.location.href='/carrito'">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
                 </button>
@@ -30,96 +25,49 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
     <section class="hero">
-        <h1>Descubre la Elegancia en Cada Detalle</h1>
-        <p>Colección exclusiva de joyas artesanales con los mejores materiales</p>
-        <button class="btn btn-primary" onclick="window.location.href='/productos'">
-            Ver Colección
-        </button>
+        <div class="hero-content">
+            <h1>Descubre la Elegancia en Cada Detalle</h1>
+            <p>Colección exclusiva de joyas artesanales con los mejores materiales</p>
+            <a href="/productos" class="btn btn-primary">Ver Colección</a>
+        </div>
     </section>
 
-    <!-- Categorías -->
-    <section class="products-section">
+    <section class="featured-products" style="padding: 4rem 2rem; background: #fff;">
+        <h2 class="section-title" style="text-align: center; margin-bottom: 2rem; color: #333; font-size: 2.5rem;">
+            Productos Destacados
+        </h2>
+        
+        <div id="featured-products" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; max-width: 1200px; margin: 0 auto;">
+            <div style="text-align:center; width:100%">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color:#d4af37"></i> Cargando productos...
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-categories">
         <h2 class="section-title">Categorías Destacadas</h2>
-        <div class="products-grid" id="categories-grid">
-            <!-- Categorías se cargan con JavaScript -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/productos" class="btn btn-outline">Ver Todas las Categorías</a>
         </div>
     </section>
 
-    <!-- Productos Destacados -->
-    <section class="products-section">
-        <h2 class="section-title">Productos Destacados</h2>
-        <div class="products-grid" id="featured-products">
-            <!-- Productos se cargan con JavaScript -->
-        </div>
-        <div class="text-center">
-            <button class="btn btn-outline" onclick="window.location.href='/productos'">
-                Ver Todos los Productos
-            </button>
-        </div>
-    </section>
-
-    <!-- Más Vendidos -->
-    <section class="products-section" style="background: #f8f5f0; padding: 3rem 2rem;">
-        <h2 class="section-title">Los Más Vendidos</h2>
-        <div class="products-grid" id="best-sellers">
-            <!-- Más vendidos se cargan con JavaScript -->
-        </div>
-    </section>
-
-    <!-- Carrito Modal -->
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Tu Carrito</h3>
-                <button class="modal-close" onclick="closeCart()">&times;</button>
-            </div>
-            <div class="modal-body" id="cartItems">
-                <!-- Items del carrito -->
-            </div>
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">Bs 0.00</span>
-            </div>
-            <div class="modal-footer" style="padding: 1.5rem;">
-                <button class="btn btn-primary btn-block" onclick="checkout()">
-                    Proceder al Pago
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
                 <h3>Joyas Elegantes</h3>
-                <p>Tienda de joyería online con los diseños más exclusivos y materiales de la más alta calidad.</p>
-                <div style="margin-top: 1rem;">
-                    <a href="#" style="color: #ccc; margin-right: 1rem;">
-                        <i class="fab fa-facebook"></i>
-                    </a>
-                    <a href="#" style="color: #ccc; margin-right: 1rem;">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" style="color: #ccc;">
-                        <i class="fab fa-pinterest"></i>
-                    </a>
-                </div>
+                <p>Tienda de joyería online con los diseños más exclusivos.</p>
             </div>
             <div class="footer-section">
                 <h3>Enlaces Rápidos</h3>
-                <ul class="footer-links">
+                <ul>
                     <li><a href="/">Inicio</a></li>
                     <li><a href="/productos">Productos</a></li>
-                    <li><a href="/categorias">Categorías</a></li>
-                    <li><a href="/ofertas">Ofertas</a></li>
-                    <li><a href="/contacto">Contacto</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h3>Contacto</h3>
+<<<<<<< HEAD
                 <ul class="footer-links">
                     <li><i class="fas fa-map-marker-alt"></i> UCB, Cochabamba</li>
                     <li><i class="fas fa-phone"></i> +591 123 4567</li>
@@ -134,5 +82,14 @@
 
     <script src="/static/js/user.js"></script>ks
     <script src="/static/js/cart.js"></script>
+=======
+                <p><i class="fas fa-map-marker-alt"></i> Av. Principal #123, La Paz</p>
+                <p><i class="fas fa-phone"></i> +591 123 4567</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/user.js"></script>
+>>>>>>> origin/Prueba1
 </body>
 </html>

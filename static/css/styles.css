@@ -452,3 +452,135 @@ body {
         grid-template-columns: 1fr;
     }
 }
+<<<<<<< HEAD
+=======
+
+/*agregado*/
+
+/* =========================================
+   NUEVO DISEÑO DE LA COLECCIÓN Y BRILLOS
+========================================= */
+
+/* 1. La Cuadrícula (Grid) */
+.product-grid {
+    display: grid;
+    /* Esto hace que las columnas se ajusten solas según el tamaño de la pantalla */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2.5rem; /* Espacio entre tarjetas */
+    padding: 1rem 0;
+}
+
+/* 2. La Tarjeta del Producto */
+.product-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Efecto al pasar el mouse (Levantar tarjeta) */
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(212, 175, 55, 0.2); /* Sombra dorada */
+}
+
+/* 3. Contenedor de la Imagen */
+.image-wrapper {
+    position: relative; /* Importante para que los brillos queden encima */
+    height: 300px;
+    overflow: hidden;
+    background-color: #f9f9f9;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+/* Zoom suave en la imagen */
+.product-card:hover .image-wrapper img {
+    transform: scale(1.08);
+}
+
+/* 4. Estilos del texto y botones */
+.product-info {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.product-title {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.product-price {
+    color: #d4af37; /* Dorado */
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.btn-add-cart {
+    background-color: white;
+    border: 2px solid #d4af37;
+    color: #d4af37;
+    padding: 8px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add-cart:hover {
+    background-color: #d4af37;
+    color: white;
+}
+
+/* =========================================
+   ✨ EFECTO DE BRILLOS (SPARKLES) ✨
+========================================= */
+
+/* La capa invisible que tendrá los brillos */
+.sparkles-overlay {
+    position: absolute;
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    pointer-events: none; /* El click traspasa esta capa */
+    opacity: 0; /* Oculto al principio */
+    transition: opacity 0.4s ease;
+    z-index: 2;
+    
+    /* Dibujamos las estrellas usando gradientes CSS (sin imágenes extra) */
+    background-image: 
+        radial-gradient(circle, white 10%, transparent 11%), 
+        radial-gradient(circle, white 10%, transparent 11%);
+    background-size: 40px 40px; 
+    background-position: 0 0, 20px 20px;
+    
+    /* Filtro para que brille más */
+    filter: drop-shadow(0 0 2px white);
+}
+
+/* Al pasar el mouse, hacemos visibles los brillos */
+.product-card:hover .sparkles-overlay {
+    opacity: 0.8;
+    animation: sparkleMove 3s linear infinite; /* Activamos el movimiento */
+}
+
+/* La animación de caída de estrellas */
+@keyframes sparkleMove {
+    from { background-position: 0 0, 20px 20px; }
+    to   { background-position: 0 40px, 20px 60px; }
+}
+>>>>>>> origin/Prueba1

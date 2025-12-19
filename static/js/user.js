@@ -1,6 +1,9 @@
-const API_URL = "http://127.0.0.1:5000";
-let cartId = localStorage.getItem('cartId') || null;
+document.addEventListener('DOMContentLoaded', () => {
+    loadProducts();
+    updateCartCount();
+});
 
+<<<<<<< HEAD
 // Si no existe un cartId, lo creamos
 if (!cartId) {
     createCart();
@@ -22,215 +25,85 @@ async function createCart() {
 
 // Cargar categorias destacadas
 async function loadFeaturedCategories() {
+=======
+// Función para obtener productos de Python y mostrarlos
+async function loadProducts() {
+>>>>>>> origin/Prueba1
     try {
-        const response = await fetch(`${API_URL}/categories`);
-        const categories = await response.json();
-        
-        const container = document.getElementById('categories-grid');
-        container.innerHTML = '';
-        
-        // Tomar solo 4 categorías para mostrar
-        categories.slice(0, 4).forEach(category => {
-            const categoryCard = document.createElement('div');
-            categoryCard.className = 'product-card';
-            categoryCard.innerHTML = `
-                <div class="product-info" style="text-align: center;">
-                    <i class="fas fa-gem fa-3x" style="color: var(--color-primary); margin-bottom: 1rem;"></i>
-                    <h3 class="product-title">${category.name}</h3>
-                    <p class="product-description">${category.description || 'Descubre nuestra colección'}</p>
-                    <button class="btn btn-outline" onclick="window.location.href='/productos?category=${category._id}'">
-                        Ver Productos
-                    </button>
-                </div>
-            `;
-            container.appendChild(categoryCard);
-        });
-    } catch (error) {
-        console.error('Error cargando categorías:', error);
-    }
-}
-
-// Cargar productos destacados
-async function loadFeaturedProducts() {
-    try {
-        const response = await fetch(`${API_URL}/products/most-viewed?limit=6`);
+        const response = await fetch('/api/products');
         const products = await response.json();
         
+        // Buscamos el ID que está en tu HTML: featured-products
         const container = document.getElementById('featured-products');
-        container.innerHTML = '';
         
+        if (!container) return;
+
+        container.innerHTML = ''; // Limpiar el ícono de carga
+
         products.forEach(product => {
-            const productCard = createProductCard(product);
-            container.appendChild(productCard);
+            // Crear tarjeta del producto
+            const card = document.createElement('div');
+            // Agregamos estilos en línea para asegurar que se vea bien sin tocar CSS
+            card.style.cssText = "border: 1px solid #eee; border-radius: 10px; padding: 15px; width: 250px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+            
+            card.innerHTML = `
+                <div style="height: 200px; overflow: hidden; margin-bottom: 15px;">
+                    <img src="${product.image}" alt="${product.name}" 
+                         style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <h3 style="font-size: 1.1rem; margin-bottom: 10px;">${product.name}</h3>
+                <p style="color: #d4af37; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">
+                    Bs ${product.price.toFixed(2)}
+                </p>
+                <button onclick="addToCart(${product.id})" 
+                        style="background: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">
+                    Agregar al Carrito
+                </button>
+            `;
+            container.appendChild(card);
         });
+
     } catch (error) {
-        console.error('Error cargando productos destacados:', error);
+        console.error('Error cargando productos:', error);
+        document.getElementById('featured-products').innerHTML = '<p>Error al cargar catálogo.</p>';
     }
 }
 
-// Cargar más vendidos
-async function loadBestSellers() {
-    try {
-        const response = await fetch(`${API_URL}/products/best-sellers?limit=4`);
-        const products = await response.json();
-        
-        const container = document.getElementById('best-sellers');
-        container.innerHTML = '';
-        
-        products.forEach(product => {
-            const productCard = createProductCard(product);
-            container.appendChild(productCard);
-        });
-    } catch (error) {
-        console.error('Error cargando más vendidos:', error);
-    }
-}
-
-// Crear tarjeta de producto
-function createProductCard(product) {
-    const div = document.createElement('div');
-    div.className = 'product-card';
-    
-    const mainPhoto = product.photos && product.photos.length > 0 
-        ? product.photos[0] 
-        : '/static/images/placeholder.jpg';
-    
-    div.innerHTML = `
-        <div class="product-badge">Destacado</div>
-        <img src="${mainPhoto}" alt="${product.name}" class="product-img">
-        <div class="product-info">
-            <h3 class="product-title">${product.name}</h3>
-            <p class="product-description">${product.description || 'Producto de joyería'}</p>
-            <div class="product-meta">
-                <span><i class="fas fa-eye"></i> ${product.views || 0}</span>
-                <span><i class="fas fa-shopping-bag"></i> ${product.purchases || 0}</span>
-            </div>
-            <div class="product-price">Bs ${product.price.toFixed(2)}</div>
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary" onclick="addToCart('${product._id}', '${product.name}', ${product.price})" style="flex: 2;">
-                    <i class="fas fa-cart-plus"></i> Añadir
-                </button>
-                <button class="btn btn-outline" onclick="viewProductDetail('${product._id}')" style="flex: 1;">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    
-    return div;
-}
-
-// Ver detalle del producto
-function viewProductDetail(productId) {
-    window.location.href = `/producto_detalle.html?id=${productId}`;
-}
-
-// Crear o obtener carrito
-async function getOrCreateCart() {
+// Función para agregar al carrito
+async function addToCart(productId) {
+    let cartId = localStorage.getItem('cartId');
     if (!cartId) {
-        try {
-            const response = await fetch(`${API_URL}/carts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            cartId = data.id;
-            localStorage.setItem('cartId', cartId);
-        } catch (error) {
-            console.error('Error creando carrito:', error);
-        }
+        cartId = 'cart_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('cartId', cartId);
     }
-    return cartId;
-}
 
-// Añadir al carrito
-async function addToCart(productId, productName, productPrice) {
     try {
-        const cartId = await getOrCreateCart();
-        
-        const response = await fetch(`${API_URL}/carts/${cartId}/add`, {
+        const response = await fetch(`/api/carts/${cartId}/add`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                product_id: productId,
-                name: productName,
-                price: productPrice,
-                quantity: 1
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ product_id: productId })
         });
         
         if (response.ok) {
+            alert("¡Producto agregado!");
             updateCartCount();
-            showAlert('Producto añadido al carrito', 'success');
         }
     } catch (error) {
-        console.error('Error añadiendo al carrito:', error);
-        showAlert('Error al añadir al carrito', 'error');
+        console.error("Error al agregar:", error);
     }
 }
 
-// Actualizar contador del carrito
+// Actualizar contador
 async function updateCartCount() {
+    let cartId = localStorage.getItem('cartId');
     if (!cartId) return;
-    
+
     try {
-        const response = await fetch(`${API_URL}/carts/${cartId}`);
-        const cart = await response.json();
+        const response = await fetch(`/api/carts/${cartId}`);
+        const data = await response.json();
+        const count = data.items ? data.items.reduce((acc, item) => acc + item.quantity, 0) : 0;
         
-        const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-        const cartCount = document.querySelector('.cart-count');
-        if (cartCount) {
-            cartCount.textContent = totalItems;
-        }
-    } catch (error) {
-        console.error('Error actualizando carrito:', error);
-    }
+        const badges = document.querySelectorAll('.cart-count');
+        badges.forEach(badge => badge.textContent = count);
+    } catch (e) { console.log(e); }
 }
-
-// Mostrar alerta
-function showAlert(message, type) {
-    // Crear elemento de alerta si no existe
-    let alertDiv = document.getElementById('alertMessage');
-    if (!alertDiv) {
-        alertDiv = document.createElement('div');
-        alertDiv.id = 'alertMessage';
-        alertDiv.style.position = 'fixed';
-        alertDiv.style.top = '20px';
-        alertDiv.style.right = '20px';
-        alertDiv.style.zIndex = '3000';
-        document.body.appendChild(alertDiv);
-    }
-    
-    alertDiv.innerHTML = `
-        <div class="alert alert-${type === 'success' ? 'success' : 'error'}" style="min-width: 300px;">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            ${message}
-        </div>
-    `;
-    
-    setTimeout(() => {
-        alertDiv.style.opacity = '0';
-        alertDiv.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
-            alertDiv.innerHTML = '';
-            alertDiv.style.opacity = '1';
-        }, 500);
-    }, 3000);
-}
-
-// Abrir modal del carrito
-function openCart() {
-    window.location.href = '/carrito.html';
-}
-
-// Cargar todo al iniciar
-document.addEventListener('DOMContentLoaded', async function() {
-    await loadFeaturedCategories();
-    await loadFeaturedProducts();
-    await loadBestSellers();
-    await updateCartCount();
-});

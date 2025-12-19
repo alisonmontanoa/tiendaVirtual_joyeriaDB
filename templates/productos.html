@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos - Joyería</title>
+    <title>Productos - Joyería Elegante</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -29,67 +29,59 @@
     <main class="products-section">
         <h1 class="section-title">Nuestra Colección</h1>
         
-        <!-- Filtros -->
-        <div style="background: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 2rem;">
             <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Buscar Productos</label>
-                    <input type="text" id="searchInput" placeholder="Buscar por nombre o descripción..." 
-                           class="form-control" onkeyup="searchProducts()">
+                    <input type="text" id="searchInput" placeholder="Buscar joya..." class="form-control">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Categoría</label>
-                    <select class="form-control" id="categoryFilter" onchange="filterProducts()">
+                    <select class="form-control" id="categoryFilter">
                         <option value="">Todas las categorías</option>
-                        <!-- Categorías se cargan con JavaScript -->
                     </select>
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Ordenar por</label>
-                    <select class="form-control" id="sortFilter" onchange="sortProducts()">
+                    <select class="form-control" id="sortFilter">
                         <option value="newest">Más recientes</option>
                         <option value="price_asc">Precio: Menor a Mayor</option>
                         <option value="price_desc">Precio: Mayor a Menor</option>
-                        <option value="views">Más vistos</option>
-                        <option value="sales">Más vendidos</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- Contador de resultados -->
-        <div id="resultsCount" style="margin-bottom: 1rem; color: var(--color-gray);">
-            Cargando productos...
+        <div id="product-grid" class="product-grid">
+            <div style="text-align: center; grid-column: 1 / -1; padding: 3rem;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: #d4af37;"></i>
+                <p style="margin-top: 1rem; color: #666;">Cargando tesoros...</p>
+            </div>
         </div>
 
-        <!-- Grid de productos -->
-        <div class="products-grid" id="productsGrid">
-            <div class="loader"></div>
-        </div>
-
-        <!-- Paginación -->
-        <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 3rem;">
-            <button class="btn btn-outline" id="prevPage" onclick="changePage(-1)" disabled>
-                <i class="fas fa-chevron-left"></i> Anterior
-            </button>
-            <span id="pageInfo" style="display: flex; align-items: center;">Página 1 de 1</span>
-            <button class="btn btn-outline" id="nextPage" onclick="changePage(1)" disabled>
-                Siguiente <i class="fas fa-chevron-right"></i>
-            </button>
+        <div class="pagination-container" style="margin-top: 3rem; text-align: center; display: flex; justify-content: center; gap: 1rem;">
+            <button class="btn btn-outline" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+            <span>Página 1</span>
+            <button class="btn btn-outline">Siguiente <i class="fas fa-chevron-right"></i></button>
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <!-- Footer igual que en user.html -->
+            <div class="footer-section">
+                <h3>Sobre Nosotros</h3>
+                <p>Joyas únicas para momentos inolvidables.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>info@joyaselegantes.com</p>
+            </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
+            <p>&copy; 2025 Joyas Elegantes. Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <!-- Carrito Modal -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -97,8 +89,7 @@
                 <button class="modal-close" onclick="closeCart()">&times;</button>
             </div>
             <div class="modal-body" id="cartItems">
-                <!-- Items del carrito -->
-            </div>
+                </div>
             <div class="cart-total">
                 <span>Total:</span>
                 <span id="cartTotal">Bs 0.00</span>
@@ -111,8 +102,8 @@
         </div>
     </div>
 
-    <script src="/static/js/products.js"></script>
     <script src="/static/js/cart.js"></script>
+<<<<<<< HEAD
     <script>
         // Variables globales para paginación
         let currentPage = 1;
@@ -150,6 +141,11 @@
                 console.error('Error añadiendo al carrito:', error);
             }
         }
+=======
+    <script src="/static/js/user.js"></script> <script>
+        function openCart() { document.getElementById('cartModal').style.display = 'flex'; }
+        function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
+>>>>>>> origin/Prueba1
     </script>
 </body>
 </html>
