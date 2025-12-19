@@ -293,10 +293,6 @@ function previewImages() {
         reader.readAsDataURL(file);
     });
 }
-function cerrarSesion() {
-    localStorage.removeItem('admin_logueado'); // Borra el permiso
-    window.location.href = '/login'; // Te manda al login
-}
 
 // Función para cerrar sesión
 function logout() {

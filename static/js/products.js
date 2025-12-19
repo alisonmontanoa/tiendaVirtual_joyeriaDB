@@ -211,6 +211,8 @@ async function loadProductDetail(productId) {
         document.getElementById("productPrice").textContent = `Bs ${product.price.toFixed(2)}`;
         document.getElementById("viewsCount").textContent = product.views || 0;
         document.getElementById("salesCount").textContent = product.purchases || 0;
+        document.getElementById("breadcrumbProduct").textContent = product.name;
+        document.getElementById("breadcrumbCategory").textContent = product.category_name || "Categoría";
 
         const mainImage = document.getElementById("productMainImage");
         const thumbnails = document.getElementById("productThumbnails");
@@ -264,7 +266,7 @@ async function loadRelatedProducts(categoryId, excludeId) {
 //  NAVEGACIÓN
 // ===============================
 function viewProductDetail(productId) {
-    window.location.href = `/producto_detalle.html?id=${productId}`;
+    window.location.href = `/producto_detalle?id=${productId}`;
 }
 
 // ===============================

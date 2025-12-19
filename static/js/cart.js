@@ -1,15 +1,21 @@
 const API_URL = "http://127.0.0.1:5000";
 
 // ===============================
-//  GESTIÓN DE ID DE CARRITO
+//  ESTADO GLOBAL
 // ===============================
 let cartId = localStorage.getItem("cartId");
 let currentCart = { items: [] };
 
-// Crear carrito si no existe
-if (!cartId) {
-    createCart();
-}
+// ===============================
+//  INICIALIZACIÓN
+// ===============================
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!cartId) {
+        await createCart();
+    }
+    loadCart();
+    updateCartCount();
+});
 
 // ===============================
 //  CREAR CARRITO
@@ -20,7 +26,6 @@ async function createCart() {
         const data = await res.json();
         cartId = data.id;
         localStorage.setItem("cartId", cartId);
-        loadCart();
     } catch (err) {
         console.error("Error creando carrito:", err);
     }
@@ -38,8 +43,10 @@ async function loadCart() {
 
         const cart = await res.json();
         currentCart = cart;
+
         displayCartItems(cart.items || []);
-        updateCartTotal(calculateTotal(cart.items || []));
+        updateTotals(cart.items || []);
+        updateCartCount();
     } catch (err) {
         console.error("Error cargando carrito:", err);
         renderEmptyCart();
@@ -47,8 +54,7 @@ async function loadCart() {
 }
 
 // ===============================
-//  AGREGAR AL CARRITO
-//  (solo enviamos product_id)
+//  AGREGAR PRODUCTO
 // ===============================
 async function addToCart(productId) {
     if (!cartId) await createCart();
@@ -63,15 +69,13 @@ async function addToCart(productId) {
             })
         });
 
-        if (res.ok) {
-            showAlert("Producto agregado al carrito", "success");
-            loadCart();
-        } else {
-            showAlert("No se pudo agregar el producto", "error");
-        }
+        if (!res.ok) throw new Error("Error al agregar");
+
+        showAlert("Producto agregado al carrito", "success");
+        loadCart();
     } catch (err) {
-        console.error("Error agregando producto:", err);
-        showAlert("Error de conexión", "error");
+        console.error(err);
+        showAlert("No se pudo agregar el producto", "error");
     }
 }
 
@@ -82,7 +86,7 @@ function displayCartItems(items) {
     const table = document.getElementById("cartTable");
     if (!table) return;
 
-    if (!items || items.length === 0) {
+    if (!items.length) {
         renderEmptyCart();
         return;
     }
@@ -91,10 +95,11 @@ function displayCartItems(items) {
 
     items.forEach(item => {
         const row = document.createElement("tr");
+
         row.innerHTML = `
             <td>
-                <div style="display:flex; align-items:center; gap:1rem;">
-                    <img src="${item.image || 'https://placehold.co/80'}"
+                <div style="display:flex;gap:1rem;align-items:center;">
+                    <img src="${item.image || '/static/images/placeholder.jpg'}"
                          style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
                     <div>
                         <strong>${item.name}</strong><br>
@@ -112,29 +117,26 @@ function displayCartItems(items) {
                 </button>
             </td>
         `;
+
         table.appendChild(row);
     });
 }
 
 // ===============================
-//  ELIMINAR PRODUCTO
+//  ELIMINAR PRODUCTO (CORRECTO)
 // ===============================
 async function removeFromCart(productId) {
     if (!confirm("¿Eliminar este producto del carrito?")) return;
 
     try {
-        const res = await fetch(`${API_URL}/carts/${cartId}/add`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                product_id: productId,
-                quantity: -9999   // truco simple: backend lo eliminará al no coincidir
-            })
+        await fetch(`${API_URL}/carts/${cartId}/item/${productId}`, {
+            method: "DELETE"
         });
 
         loadCart();
+        showAlert("Producto eliminado", "success");
     } catch (err) {
-        console.error("Error eliminando producto:", err);
+        console.error(err);
         showAlert("Error al eliminar producto", "error");
     }
 }
@@ -143,7 +145,7 @@ async function removeFromCart(productId) {
 //  VACIAR CARRITO
 // ===============================
 async function clearCart() {
-    if (!confirm("¿Vaciar carrito?")) return;
+    if (!confirm("¿Vaciar carrito completo?")) return;
 
     try {
         await fetch(`${API_URL}/carts/${cartId}/clear`, { method: "PUT" });
@@ -151,7 +153,7 @@ async function clearCart() {
         loadCart();
         showAlert("Carrito vaciado", "success");
     } catch (err) {
-        console.error("Error vaciando carrito:", err);
+        console.error(err);
         showAlert("Error al vaciar carrito", "error");
     }
 }
@@ -159,85 +161,31 @@ async function clearCart() {
 // ===============================
 //  TOTALES
 // ===============================
-function calculateTotal(items) {
-    return items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-}
+function updateTotals(items) {
+    const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-function updateCartTotal(total) {
-    const shipping = total > 0 ? 15.0 : 0;
-    const finalTotal = total + shipping;
+    if (document.getElementById("cartTotal"))
+        document.getElementById("cartTotal").textContent = total.toFixed(2);
 
     if (document.getElementById("cartTotalPrice"))
         document.getElementById("cartTotalPrice").textContent = `Bs ${total.toFixed(2)}`;
-
-    if (document.getElementById("orderSubtotal"))
-        document.getElementById("orderSubtotal").textContent = `Bs ${total.toFixed(2)}`;
-
-    if (document.getElementById("orderTotal"))
-        document.getElementById("orderTotal").textContent = `Bs ${finalTotal.toFixed(2)}`;
 }
 
 // ===============================
-//  CREAR ORDEN
+//  CONTADOR DEL CARRITO
 // ===============================
-async function createOrder() {
-    if (!cartId || currentCart.items.length === 0) {
-        showAlert("El carrito está vacío", "error");
-        return;
-    }
+function updateCartCount() {
+    const count = currentCart.items
+        ? currentCart.items.reduce((sum, i) => sum + i.quantity, 0)
+        : 0;
 
-    const paymentMethod = document.getElementById("paymentMethod")?.value || "credit_card";
-
-    try {
-        const res = await fetch(`${API_URL}/orders`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                cart_id: cartId,
-                payment_method: paymentMethod
-            })
-        });
-
-        const result = await res.json();
-
-        if (res.ok) {
-            showOrderResult(result);
-        } else {
-            showAlert("Error procesando la orden", "error");
-        }
-    } catch (err) {
-        console.error("Error creando orden:", err);
-        showAlert("Error de conexión", "error");
-    }
+    document.querySelectorAll(".cart-count").forEach(el => {
+        el.textContent = count;
+    });
 }
 
 // ===============================
-//  RESULTADO DE ORDEN
-// ===============================
-function showOrderResult(result) {
-    const modal = document.getElementById("orderModal");
-    const success = document.getElementById("orderSuccess");
-    const error = document.getElementById("orderError");
-
-    if (result.status === "completed") {
-        success.style.display = "block";
-        error.style.display = "none";
-        document.getElementById("orderNumber").textContent = result.order_number;
-        document.getElementById("orderTotalConfirm").textContent = `Bs ${result.total.toFixed(2)}`;
-
-        localStorage.removeItem("cartId");
-        cartId = null;
-        currentCart.items = [];
-    } else {
-        success.style.display = "none";
-        error.style.display = "block";
-    }
-
-    modal.style.display = "flex";
-}
-
-// ===============================
-//  UTILIDADES
+//  CARRITO VACÍO
 // ===============================
 function renderEmptyCart() {
     const table = document.getElementById("cartTable");
@@ -248,26 +196,30 @@ function renderEmptyCart() {
             <td colspan="5" style="text-align:center;padding:3rem;">
                 <i class="fas fa-shopping-cart fa-3x" style="color:#ddd;"></i>
                 <h3>Tu carrito está vacío</h3>
-                <p>Agrega productos para comenzar a comprar</p>
+                <p>Agrega productos para comenzar</p>
             </td>
         </tr>
     `;
-    updateCartTotal(0);
-}
 
-function showAlert(msg, type) {
-    const div = document.createElement("div");
-    div.className = `alert alert-${type}`;
-    div.textContent = msg;
-    div.style.position = "fixed";
-    div.style.top = "20px";
-    div.style.right = "20px";
-    div.style.zIndex = "3000";
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
+    if (document.getElementById("cartTotal"))
+        document.getElementById("cartTotal").textContent = "0.00";
+
+    updateCartCount();
 }
 
 // ===============================
-//  INIT
+//  ALERTAS
 // ===============================
-document.addEventListener("DOMContentLoaded", loadCart);
+function showAlert(message, type = "success") {
+    const alert = document.createElement("div");
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alert.style.position = "fixed";
+    alert.style.top = "20px";
+    alert.style.right = "20px";
+    alert.style.zIndex = "9999";
+
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 3000);
+}
+

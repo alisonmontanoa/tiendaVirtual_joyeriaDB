@@ -1,29 +1,27 @@
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
-from database import db  
+from database import db
 
 carts_bp = Blueprint("carts", __name__)
 carts = db.get_collection("carts")
+products = db.get_collection("products")
 
-# Crear carrito
-@carts_bp.route("/carts", methods=["POST"])
-def create_cart():
-    cart_id = carts.insert_one({
-        "items": []
-    }).inserted_id
-    return jsonify({"id": str(cart_id)}), 201
-
-
-# Agregar producto
 @carts_bp.route("/carts/<id>/add", methods=["POST"])
 def add_to_cart(id):
     data = request.json
+    product_id = data.get("product_id")
+    quantity = int(data.get("quantity", 1))
+
+    product_db = products.find_one({"_id": ObjectId(product_id)})
+    if not product_db:
+        return jsonify({"error": "Producto no encontrado"}), 404
 
     product = {
-        "product_id": data["product_id"],
-        "name": data["name"],
-        "price": float(data["price"]),
-        "quantity": int(data.get("quantity", 1))
+        "product_id": product_id,
+        "name": product_db["name"],
+        "price": float(product_db["price"]),
+        "quantity": quantity,
+        "image": product_db["photos"][0] if product_db.get("photos") else "/static/images/placeholder.jpg"
     }
 
     cart = carts.find_one({"_id": ObjectId(id)})
@@ -33,14 +31,14 @@ def add_to_cart(id):
             "_id": ObjectId(id),
             "items": [product]
         })
-        return jsonify({"message": "Cart created and product added"}), 201
+        return jsonify({"message": "Cart created"}), 201
 
-    existing = next((i for i in cart["items"] if i["product_id"] == product["product_id"]), None)
+    existing = next((i for i in cart["items"] if i["product_id"] == product_id), None)
 
     if existing:
         carts.update_one(
-            {"_id": ObjectId(id), "items.product_id": product["product_id"]},
-            {"$inc": {"items.$.quantity": product["quantity"]}}
+            {"_id": ObjectId(id), "items.product_id": product_id},
+            {"$inc": {"items.$.quantity": quantity}}
         )
     else:
         carts.update_one(
@@ -49,39 +47,3 @@ def add_to_cart(id):
         )
 
     return jsonify({"message": "Product added"}), 200
-
-
-# Obtener carrito con total
-@carts_bp.route("/carts/<id>", methods=["GET"])
-def get_cart(id):
-    cart = carts.find_one({"_id": ObjectId(id)})
-    if not cart:
-        return jsonify({"error": "Cart not found"}), 404
-
-    total = sum(item["price"] * item["quantity"] for item in cart["items"])
-
-    return jsonify({
-        "id": str(cart["_id"]),
-        "items": cart["items"],
-        "total": round(total, 2)
-    }), 200
-
-
-# Eliminar producto específico
-@carts_bp.route("/carts/<id>/item/<product_id>", methods=["DELETE"])
-def remove_item(id, product_id):
-    carts.update_one(
-        {"_id": ObjectId(id)},
-        {"$pull": {"items": {"product_id": product_id}}}
-    )
-    return jsonify({"message": "Item removed"}), 200
-
-
-# Vaciar carrito
-@carts_bp.route("/carts/<id>/clear", methods=["PUT"])
-def clear_cart(id):
-    carts.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": {"items": []}}
-    )
-    return jsonify({"message": "Cart cleared"}), 200
