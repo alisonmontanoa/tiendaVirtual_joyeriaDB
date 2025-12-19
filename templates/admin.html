@@ -78,8 +78,7 @@
                                     <th>Imagen</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Vistas</th><th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="productsTable">
-                                </tbody>
+                            <tbody id="productsTable"></tbody>
                         </table>
                     </div>
                 </section>
@@ -92,8 +91,7 @@
                                     <th>Nombre</th><th>Descripción</th><th>Stock</th><th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="categoriesTable">
-                                </tbody>
+                            <tbody id="categoriesTable"></tbody>
                         </table>
                     </div>
                 </section>
@@ -130,6 +128,9 @@
                     
                     <label>Categoría</label>
                     <select id="productCategory" class="form-control" required></select>
+
+                    <label>Imagen</label>
+                    <input type="file" id="productPhotos" class="form-control" accept="image/*">
 
                     <label>Descripción</label>
                     <textarea id="productDescription" class="form-control"></textarea>

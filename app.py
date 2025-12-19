@@ -1,5 +1,7 @@
 from flask import Flask, render_template, send_from_directory, jsonify, request
 from flask_cors import CORS
+from werkzeug.utils import secure_filename # Importante para guardar archivos
+import time
 import os
 
 app = Flask(__name__, 
@@ -30,7 +32,6 @@ products_db = [
     {"id": 4, "name": "Conjunto Perlas", "price": 1200.00, "image": "/static/images/products/perlas.jpeg", "category": "Collares", "views": 30}
 ]
 
-# Almacenamiento temporal (se borra al reiniciar servidor)
 carts_storage = {}
 orders_db = []
 
@@ -69,22 +70,53 @@ def delete_category(cat_id):
 def get_products_fix():
     return jsonify(products_db)
 
+# --- ESTA ES LA FUNCIÓN ACTUALIZADA PARA IMÁGENES ---
 @app.route('/api/products', methods=['POST'])
 def add_product():
-    data = request.json
-    new_id = len(products_db) + 1
-    default_img = "/static/images/products/anillo.avif"
-    
-    new_product = {
-        "id": new_id,
-        "name": data.get("name", "Nuevo Producto"),
-        "price": float(data.get("price", 0)),
-        "image": default_img, 
-        "category": data.get("category", "General"),
-        "views": 0
-    }
-    products_db.append(new_product)
-    return jsonify({"success": True, "product": new_product})
+    # Usamos try/except para capturar errores de subida
+    try:
+        # Obtenemos datos del formulario (ya no es JSON puro)
+        name = request.form.get('name')
+        price = float(request.form.get('price'))
+        category = request.form.get('category')
+        description = request.form.get('description', '')
+        
+        # Imagen por defecto
+        image_url = "/static/images/products/anillo.avif"
+        
+        # Procesar archivo de imagen si existe
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename != '':
+                # Crear nombre único para evitar conflictos
+                filename = secure_filename(file.filename)
+                unique_name = f"{int(time.time())}_{filename}"
+                
+                # Asegurar que la carpeta existe
+                save_folder = os.path.join(app.static_folder, 'images', 'products')
+                if not os.path.exists(save_folder):
+                    os.makedirs(save_folder)
+                
+                # Guardar archivo
+                file.save(os.path.join(save_folder, unique_name))
+                image_url = f"/static/images/products/{unique_name}"
+
+        new_id = len(products_db) + 1
+        new_product = {
+            "id": new_id,
+            "name": name,
+            "price": price,
+            "image": image_url, # Guardamos la ruta de la imagen subida
+            "category": category,
+            "description": description,
+            "views": 0
+        }
+        products_db.append(new_product)
+        return jsonify({"success": True, "product": new_product})
+        
+    except Exception as e:
+        print(f"Error al guardar producto: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
@@ -93,7 +125,7 @@ def delete_product(product_id):
     return jsonify({"success": True, "message": "Producto eliminado"})
 
 # ==========================================
-#  RUTAS API: CARRITO (¡LÓGICA FUNCIONAL!)
+#  RUTAS API: CARRITO
 # ==========================================
 
 @app.route('/api/carts/<cart_id>', methods=['GET'])
@@ -105,7 +137,6 @@ def get_cart(cart_id):
 def add_to_cart(cart_id):
     data = request.json
     try:
-        # Convertimos a int porque en la BD los IDs son numéricos
         product_id = int(data.get('product_id'))
     except:
         return jsonify({"success": False, "error": "ID inválido"}), 400
@@ -113,7 +144,6 @@ def add_to_cart(cart_id):
     if cart_id not in carts_storage:
         carts_storage[cart_id] = {"items": []}
     
-    # 1. Buscamos si ya existe en el carrito para sumar cantidad
     found = False
     for item in carts_storage[cart_id]["items"]:
         if item["product_id"] == product_id:
@@ -121,7 +151,6 @@ def add_to_cart(cart_id):
             found = True
             break
     
-    # 2. Si no existe, lo agregamos
     if not found:
         product_info = next((p for p in products_db if p["id"] == product_id), None)
         if product_info:
@@ -140,14 +169,12 @@ def add_to_cart(cart_id):
 def remove_from_cart(cart_id):
     data = request.json
     product_id_to_remove = int(data.get('product_id'))
-    
     if cart_id in carts_storage:
         carts_storage[cart_id]["items"] = [
             item for item in carts_storage[cart_id]["items"] 
             if item["product_id"] != product_id_to_remove
         ]
         return jsonify({"success": True, "cart": carts_storage[cart_id]})
-    
     return jsonify({"success": False, "error": "Carrito no encontrado"}), 404
 
 # ==========================================
@@ -187,5 +214,9 @@ def serve_static(filename):
     return send_from_directory('static', filename)
 
 if __name__ == '__main__':
+    # Crear carpetas necesarias
+    images_path = os.path.join(app.static_folder, 'images', 'products')
+    if not os.path.exists(images_path):
+        os.makedirs(images_path)
     print("--- SERVIDOR CORRIENDO EN PUERTO 5000 ---")
     app.run(debug=True, port=5000)

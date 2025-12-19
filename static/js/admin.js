@@ -1,6 +1,5 @@
-const API_URL = "/api"; // Usamos ruta relativa para evitar errores de puerto
+const API_URL = "/api"; 
 
-// Verificación de seguridad al inicio
 (function comprobarAcceso() {
     if (localStorage.getItem('admin_logueado') !== 'si') {
         window.location.href = '/login';
@@ -15,23 +14,19 @@ let categoriesList = [];
 // 1. NAVEGACIÓN
 // =========================
 document.addEventListener('DOMContentLoaded', () => {
-    showSection('dashboard'); // Cargar dashboard por defecto
+    showSection('dashboard');
 });
 
 function showSection(sectionId) {
-    // Ocultar todas las secciones
     document.querySelectorAll(".section-content").forEach(sec => sec.style.display = "none");
-    // Desactivar links del menú
     document.querySelectorAll(".admin-menu a").forEach(a => a.classList.remove("active"));
 
-    // Mostrar la seleccionada
     const targetSection = document.getElementById(sectionId);
     if(targetSection) targetSection.style.display = "block";
     
     const activeLink = document.querySelector(`a[href="#${sectionId}"]`);
     if(activeLink) activeLink.classList.add("active");
 
-    // Actualizar Título y Botón Agregar
     const titleMap = {
         'dashboard': 'Dashboard de Ventas',
         'products': 'Gestión de Inventario',
@@ -48,7 +43,6 @@ function showSection(sectionId) {
         addBtn.style.display = "none";
     }
 
-    // Cargar datos específicos
     if (sectionId === "dashboard") loadDashboardStats();
     if (sectionId === "products") loadProducts();
     if (sectionId === "categories") loadCategories();
@@ -56,7 +50,6 @@ function showSection(sectionId) {
 }
 
 function handleGlobalAdd() {
-    // Detectar qué sección está visible para saber qué modal abrir
     const productsVisible = document.getElementById('products').style.display !== 'none';
     const categoriesVisible = document.getElementById('categories').style.display !== 'none';
 
@@ -75,11 +68,8 @@ function logout() {
 async function loadProducts() {
     toggleLoading(true);
     try {
-        // 1. Cargar productos
         const res = await fetch(`${API_URL}/products`);
         const products = await res.json();
-        
-        // 2. Cargar categorías para llenar el select del modal
         await loadCategoriesForSelect(); 
 
         const tbody = document.getElementById("productsTable");
@@ -108,43 +98,54 @@ async function loadProducts() {
     }
 }
 
+// --- FUNCIÓN ACTUALIZADA PARA ENVIAR IMÁGENES ---
 async function saveProduct() {
     const name = document.getElementById("productName").value;
     const price = document.getElementById("productPrice").value;
     const catSelect = document.getElementById("productCategory");
     const categoryName = catSelect.options[catSelect.selectedIndex]?.text || "General";
+    const description = document.getElementById("productDescription").value;
+    const fileInput = document.getElementById("productPhotos"); // Input de archivo
 
     if (!name || !price) return notify("Atención", "Nombre y Precio son obligatorios", "warning");
 
-    // Enviamos JSON simple
-    const newProduct = {
-        name: name,
-        price: price,
-        category: categoryName,
-        description: document.getElementById("productDescription").value
-    };
+    // Usamos FormData para enviar archivos
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('category', categoryName);
+    formData.append('description', description);
+
+    // Si seleccionó una foto, la agregamos
+    if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+    }
 
     toggleLoading(true);
     try {
         const res = await fetch(`${API_URL}/products`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newProduct)
+            // NO establecemos Content-Type header manualmente, fetch lo hace automático para FormData
+            body: formData 
         });
 
-        if (res.ok) {
-            notify("Éxito", "Producto creado correctamente", "success");
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            notify("Éxito", "Producto guardado correctamente", "success");
             closeProductModal();
             loadProducts();
         } else {
             notify("Error", "No se pudo guardar", "error");
         }
-    } catch (e) { notify("Error", "Fallo de conexión", "error"); }
+    } catch (e) { 
+        console.error(e);
+        notify("Error", "Fallo de conexión", "error"); 
+    }
     finally { toggleLoading(false); }
 }
 
 async function deleteProduct(id, name) {
-    // Alerta personalizada con el nombre del producto
     const result = await Swal.fire({
         title: `¿Eliminar "${name}"?`,
         text: "No podrás recuperar este producto.",
@@ -172,7 +173,7 @@ async function loadCategories() {
     try {
         const res = await fetch(`${API_URL}/categories`);
         const cats = await res.json();
-        categoriesList = cats; // Guardamos para usar luego
+        categoriesList = cats;
 
         const tbody = document.getElementById("categoriesTable");
         tbody.innerHTML = cats.map(c => `
@@ -235,7 +236,7 @@ async function deleteCategory(id) {
 }
 
 // =========================
-// 4. DASHBOARD Y EXTRAS
+// 4. DASHBOARD Y UTILIDADES
 // =========================
 async function loadDashboardStats() {
     try {
@@ -244,8 +245,6 @@ async function loadDashboardStats() {
         document.getElementById("totalRevenue").textContent = `Bs. ${stats.total_revenue}`;
         document.getElementById("totalSales").textContent = stats.total_sales_count;
         document.getElementById("failedPayments").textContent = stats.failed_payments;
-        
-        // Cargar gráfico simple
         initChart([100, 200, 150, 300, 250, 400, 350]);
     } catch(e) {}
 }
@@ -267,7 +266,6 @@ async function loadOrdersTable() {
     } catch(e) {}
 }
 
-// Modales
 function showProductForm() {
     document.getElementById("productForm").reset();
     document.getElementById("productModal").style.display = "flex";
@@ -280,30 +278,19 @@ function showCategoryForm() {
 function closeProductModal() { document.getElementById("productModal").style.display = "none"; }
 function closeCategoryModal() { document.getElementById("categoryModal").style.display = "none"; }
 
-// Utilidades
 function toggleLoading(show) { 
     const loader = document.getElementById("loadingOverlay");
     if(loader) loader.style.display = show ? "block" : "none";
 }
 
 function notify(title, text, icon) {
-    Swal.fire({
-        title: title,
-        text: text,
-        icon: icon,
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000
-    });
+    Swal.fire({ title, text, icon, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
 }
 
 function initChart(data) {
     const ctx = document.getElementById('salesChart');
     if(!ctx) return;
-    // Si ya existe instancia, destruir (lógica simplificada)
     if(window.myChart) window.myChart.destroy();
-
     window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
