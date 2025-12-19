@@ -48,11 +48,40 @@ products_db = [
 # Almacén de carritos en memoria
 carts_storage = {}
 
-# --- RUTAS API (BACKEND) ---
+# ==========================================
+#  RUTAS API (BACKEND)
+# ==========================================
+
+# --- 1. GESTIÓN DE PRODUCTOS (Para Tienda y Admin) ---
 
 @app.route('/api/products', methods=['GET'])
 def get_products_fix():
     return jsonify(products_db)
+
+# NUEVO: Ruta para AGREGAR productos desde el Admin
+@app.route('/api/products', methods=['POST'])
+def add_product():
+    data = request.json
+    new_id = len(products_db) + 1
+    new_product = {
+        "id": new_id,
+        "name": data.get("name", "Nuevo Producto"),
+        "price": float(data.get("price", 0)),
+        "image": data.get("image", "/static/images/products/anillo.avif"), # Imagen por defecto
+        "category": data.get("category", "joyas")
+    }
+    products_db.append(new_product)
+    return jsonify({"success": True, "product": new_product})
+
+# NUEVO: Ruta para ELIMINAR productos desde el Admin
+@app.route('/api/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    global products_db
+    products_db = [p for p in products_db if p['id'] != product_id]
+    return jsonify({"success": True, "message": "Producto eliminado"})
+
+
+# --- 2. GESTIÓN DEL CARRITO ---
 
 @app.route('/api/carts/<cart_id>', methods=['GET'])
 def get_cart_fix(cart_id):
@@ -97,7 +126,27 @@ def remove_from_cart_fix(cart_id):
         return jsonify({"success": True, "cart": carts_storage[cart_id]})
     return jsonify({"success": False, "error": "Carrito no encontrado"}), 404
 
-# --- RUTAS DE PÁGINAS WEB (FRONTEND) ---
+
+# --- 3. AUTENTICACIÓN (LOGIN) ---
+
+# NUEVO: Ruta para verificar usuario y contraseña
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # CREDENCIALES FIJAS (Puedes cambiarlas aquí)
+    # Aceptamos 'admin' o 'alison' como usuario
+    if (username == 'admin' or username == 'alison') and password == '123':
+        return jsonify({"success": True, "message": "Login exitoso"})
+    
+    return jsonify({"success": False, "message": "Credenciales incorrectas"}), 401
+
+
+# ==========================================
+#  RUTAS DE PÁGINAS WEB (FRONTEND)
+# ==========================================
 
 @app.route('/')
 def user_panel(): return render_template("user.html")
@@ -111,7 +160,6 @@ def productos_page(): return render_template("productos.html")
 @app.route('/contacto')
 def contacto_page(): return render_template("contacto.html")
 
-# --- ¡AQUÍ ESTABAN FALTANDO ESTAS RUTAS! ---
 @app.route('/admin')
 def admin_panel():
     return render_template("admin.html")
@@ -119,9 +167,8 @@ def admin_panel():
 @app.route('/login')
 def login_page():
     return render_template("login.html")
-# -------------------------------------------
 
-# Servir archivos estáticos por si acaso
+# Servir archivos estáticos
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)

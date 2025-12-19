@@ -5,9 +5,8 @@
     <title>Acceso Admin - Joyas Elegantes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Estilo para que se vea profesional y centrado */
         body {
-            background: #f4f1ea; /* Color crema suave */
+            background: #f4f1ea;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -30,7 +29,7 @@
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            box-sizing: border-box; /* Evita que el input se salga del cuadro */
+            box-sizing: border-box; 
         }
         button {
             background: #b8962d;
@@ -41,6 +40,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            transition: background 0.3s;
         }
         button:hover { background: #967a24; }
     </style>
@@ -57,26 +57,44 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok) {
-                // Si la contraseña es correcta, guardamos la "sesión" y entramos
-                localStorage.setItem('admin_logueado', 'si');
-                window.location.href = '/admin';
-            } else {
-                Swal.fire('Error', 'Usuario o contraseña incorrectos', 'error');
+                if (data.success) {
+                    // --- ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA! ---
+                    // Guardamos el "pase" para que admin.html no nos bote
+                    localStorage.setItem('admin_logueado', 'si'); 
+                    // ---------------------------------------------
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Bienvenido!',
+                        text: 'Ingresando al panel...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '/admin';
+                    });
+                } else {
+                    Swal.fire('Error', 'Usuario o contraseña incorrectos', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
             }
         });
     </script>
