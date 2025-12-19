@@ -4,152 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos - Joyería</title>
+
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <header class="header">
-        <nav class="navbar">
-            <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Joyas Elegantes
-            </a>
-            <div class="nav-links">
-                <a href="/" class="nav-link">Inicio</a>
-                <a href="/productos" class="nav-link active">Productos</a>
-                <button class="cart-btn" onclick="openCart()">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
-                </button>
-            </div>
-        </nav>
-    </header>
 
-    <main class="products-section">
-        <h1 class="section-title">Nuestra Colección</h1>
-        
-        <!-- Filtros -->
-        <div style="background: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Buscar Productos</label>
-                    <input type="text" id="searchInput" placeholder="Buscar por nombre o descripción..." 
-                           class="form-control" onkeyup="searchProducts()">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Categoría</label>
-                    <select class="form-control" id="categoryFilter" onchange="filterProducts()">
-                        <option value="">Todas las categorías</option>
-                        <!-- Categorías se cargan con JavaScript -->
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Ordenar por</label>
-                    <select class="form-control" id="sortFilter" onchange="sortProducts()">
-                        <option value="newest">Más recientes</option>
-                        <option value="price_asc">Precio: Menor a Mayor</option>
-                        <option value="price_desc">Precio: Mayor a Menor</option>
-                        <option value="views">Más vistos</option>
-                        <option value="sales">Más vendidos</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contador de resultados -->
-        <div id="resultsCount" style="margin-bottom: 1rem; color: var(--color-gray);">
-            Cargando productos...
-        </div>
-
-        <!-- Grid de productos -->
-        <div class="products-grid" id="productsGrid">
-            <div class="loader"></div>
-        </div>
-
-        <!-- Paginación -->
-        <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 3rem;">
-            <button class="btn btn-outline" id="prevPage" onclick="changePage(-1)" disabled>
-                <i class="fas fa-chevron-left"></i> Anterior
-            </button>
-            <span id="pageInfo" style="display: flex; align-items: center;">Página 1 de 1</span>
-            <button class="btn btn-outline" id="nextPage" onclick="changePage(1)" disabled>
-                Siguiente <i class="fas fa-chevron-right"></i>
+<header class="header">
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <i class="fas fa-gem"></i>
+            Joyas Elegantes
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Inicio</a>
+            <a href="/productos" class="nav-link active">Productos</a>
+            <button class="cart-btn" onclick="openCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count">0</span>
             </button>
         </div>
-    </main>
+    </nav>
+</header>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <!-- Footer igual que en user.html -->
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
-        </div>
-    </footer>
+<main class="products-section">
+    <h1 class="section-title">Nuestra Colección</h1>
 
-    <!-- Carrito Modal -->
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Tu Carrito</h3>
-                <button class="modal-close" onclick="closeCart()">&times;</button>
+    <!-- Filtros -->
+    <div class="filter-box">
+        <div class="filter-grid">
+            <div>
+                <label>Buscar Productos</label>
+                <input type="text" id="searchInput" class="form-control" placeholder="Buscar joya...">
             </div>
-            <div class="modal-body" id="cartItems">
-                <!-- Items del carrito -->
+
+            <div>
+                <label>Categoría</label>
+                <select id="categoryFilter" class="form-control">
+                    <option value="">Todas las categorías</option>
+                </select>
             </div>
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">Bs 0.00</span>
-            </div>
-            <div class="modal-footer" style="padding: 1.5rem;">
-                <button class="btn btn-primary btn-block" onclick="window.location.href='/carrito'">
-                    Ver Carrito Completo
-                </button>
+
+            <div>
+                <label>Ordenar por</label>
+                <select id="sortFilter" class="form-control">
+                    <option value="newest">Más recientes</option>
+                    <option value="price_asc">Precio: Menor a Mayor</option>
+                    <option value="price_desc">Precio: Mayor a Menor</option>
+                    <option value="views">Más vistos</option>
+                </select>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/products.js"></script>
-    <script src="/static/js/cart.js"></script>
-    <script>
-        // Variables globales para paginación
-        let currentPage = 1;
-        let totalPages = 1;
-        let allProducts = [];
-        let filteredProducts = [];
+    <!-- Resultados -->
+    <div id="resultsCount" class="results-count">
+        Cargando productos...
+    </div>
 
-        // Cargar productos al inicio
-        window.onload = function() {
-            loadProducts();
-            loadCategories();
-        };
+    <!-- Productos -->
+    <div class="products-grid" id="productsGrid">
+        <div class="loader"></div>
+    </div>
 
-        // Función para agregar un producto al carrito
-        async function addToCart(productId) {
-            const product = {
-                product_id: productId,  // ID del producto
-                name: 'Collar de plata', // Nombre del producto (esto debe ser dinámico)
-                price: 129.99, // Precio del producto (esto debe ser dinámico)
-                quantity: 1  // Agregar 1 producto al carrito
-            };
+    <!-- Paginación -->
+    <div class="pagination">
+        <button id="prevPage" class="btn btn-outline" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
 
-            try {
-                const response = await fetch(`${API_URL}/carts/${cartId}/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(product)
-                });
-                const data = await response.json();
-                console.log('Producto añadido al carrito:', data);
-                loadCart(); // Recargamos el carrito después de agregar el producto
-            } catch (error) {
-                console.error('Error añadiendo al carrito:', error);
-            }
-        }
-    </script>
+        <span id="pageInfo">Página 1 de 1</span>
+
+        <button id="nextPage" class="btn btn-outline" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="footer-bottom">
+        <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+<!-- Modal Carrito -->
+<div id="cartModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Tu Carrito</h3>
+            <button class="modal-close" onclick="closeCart()">&times;</button>
+        </div>
+
+        <div class="modal-body" id="cartItems"></div>
+
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cartTotal">Bs 0.00</span>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-primary btn-block" onclick="window.location.href='/carrito'">
+                Ver Carrito Completo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="/static/js/products.js"></script>
+<script src="/static/js/cart.js"></script>
+
+<script>
+function openCart() {
+    document.getElementById('cartModal').style.display = 'flex';
+}
+function closeCart() {
+    document.getElementById('cartModal').style.display = 'none';
+}
+</script>
+
 </body>
 </html>

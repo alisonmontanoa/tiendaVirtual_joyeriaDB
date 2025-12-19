@@ -97,7 +97,7 @@ async function loadProducts() {
                          onerror="this.onerror=null;this.src='https://placehold.co/50x50?text=Error';">
                 </td>
                 <td><strong>${p.name}</strong></td>
-                <td><span class="badge">${p.category || 'General'}</span></td>
+                <td><span class="badge">${p.category_name}</span></td>
                 <td>Bs ${p.price}</td>
                 <td>${p.views || 0}</td>
                 <td>

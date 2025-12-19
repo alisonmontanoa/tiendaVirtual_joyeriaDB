@@ -3,6 +3,7 @@
     display: flex;
 }
 
+/* ================= SIDEBAR ================= */
 .admin-sidebar {
     width: 250px;
     background: var(--color-dark);
@@ -49,6 +50,7 @@
     margin-right: 10px;
 }
 
+/* ================= MAIN ================= */
 .admin-main {
     flex: 1;
     background: #f8f9fa;
@@ -68,7 +70,7 @@
     padding: 2rem;
 }
 
-/* Stats Cards */
+/* ================= STATS ================= */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -112,7 +114,7 @@
     font-size: 0.9rem;
 }
 
-/* Tablas */
+/* ================= TABLES ================= */
 .table-container {
     background: white;
     border-radius: var(--border-radius);
@@ -152,7 +154,7 @@
     background: #f8f9fa;
 }
 
-/* Forms */
+/* ================= FORMS ================= */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -161,7 +163,6 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: var(--color-dark);
 }
 
 .form-control {
@@ -185,7 +186,7 @@
     gap: 1rem;
 }
 
-/* Badges */
+/* ================= BADGES ================= */
 .badge {
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
@@ -213,7 +214,7 @@
     color: #0c5460;
 }
 
-/* Action buttons */
+/* ================= ACTION BUTTONS ================= */
 .actions {
     display: flex;
     gap: 0.5rem;
@@ -250,7 +251,7 @@
     transform: scale(1.1);
 }
 
-/* Charts */
+/* ================= CHARTS ================= */
 .chart-container {
     background: white;
     padding: 1.5rem;

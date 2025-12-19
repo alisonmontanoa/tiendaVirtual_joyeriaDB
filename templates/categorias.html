@@ -4,69 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Categorías - Tienda Virtual</title>
+
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <header class="header">
-        <nav class="navbar">
-            <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Joyas Elegantes
-            </a>
-            <div class="nav-links">
-                <a href="/" class="nav-link">Inicio</a>
-                <a href="/productos" class="nav-link">Productos</a>
-                <a href="/categorias" class="nav-link active">Categorías</a>
-                <a href="/contacto" class="nav-link">Contacto</a>
-            </div>
-        </nav>
-    </header>
 
-    <main class="products-section">
-        <h1 class="section-title">Categorías de Productos</h1>
-        
-        <div class="categories-grid" id="categoriesGrid">
-            <!-- Aquí se cargarán las categorías con JavaScript -->
+<header class="header">
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <i class="fas fa-gem"></i>
+            Joyas Elegantes
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Inicio</a>
+            <a href="/productos" class="nav-link">Productos</a>
+            <a href="/categorias" class="nav-link active">Categorías</a>
+            <a href="/contacto" class="nav-link">Contacto</a>
         </div>
-    </main>
+    </nav>
+</header>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
-        </div>
-    </footer>
+<main class="products-section">
+    <h1 class="section-title">Categorías de Productos</h1>
 
-    <script src="/static/js/products.js"></script>
-    <script>
-        // Cargar categorías desde el backend
-        async function loadCategories() {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/categories');
-                const categories = await response.json();
-                const container = document.getElementById('categoriesGrid');
+    <div class="categories-grid" id="categoriesGrid">
+        <!-- categorías dinámicas -->
+    </div>
+</main>
 
-                categories.forEach(category => {
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'category-card';
-                    categoryDiv.innerHTML = `
-                        <a href="/productos?category=${category._id}" class="category-card-link">
-                            <h3>${category.name}</h3>
-                            <p>${category.description}</p>
-                        </a>
-                    `;
-                    container.appendChild(categoryDiv);
-                });
-            } catch (error) {
-                console.error('Error cargando categorías:', error);
-            }
+<footer class="footer">
+    <div class="footer-content">
+        <p>&copy; 2024 Joyas Elegantes. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+<script>
+const API_URL = "http://127.0.0.1:5000";
+
+async function loadCategories() {
+    try {
+        const response = await fetch(`${API_URL}/categories`);
+        const categories = await response.json();
+        const container = document.getElementById('categoriesGrid');
+
+        container.innerHTML = '';
+
+        if (categories.length === 0) {
+            container.innerHTML = `
+                <p style="text-align:center; grid-column:1/-1;">
+                    No hay categorías disponibles.
+                </p>
+            `;
+            return;
         }
 
-        // Llamar la función para cargar las categorías cuando la página cargue
-        window.onload = function() {
-            loadCategories();
-        };
-    </script>
+        categories.forEach(category => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'category-card';
+            categoryDiv.innerHTML = `
+                <a href="/productos?category=${category._id}" class="category-card-link">
+                    <h3>${category.name}</h3>
+                    <p>${category.description || 'Explora nuestros productos'}</p>
+                </a>
+            `;
+            container.appendChild(categoryDiv);
+        });
+
+    } catch (error) {
+        console.error('Error cargando categorías:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+
 </body>
 </html>

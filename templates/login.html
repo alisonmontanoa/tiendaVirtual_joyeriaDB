@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Acceso Admin - Joyas Elegantes</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* Estilo para que se vea profesional y centrado */
         body {
-            background: #f4f1ea; /* Color crema suave */
+            background: #f4f1ea;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -30,7 +31,7 @@
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            box-sizing: border-box; /* Evita que el input se salga del cuadro */
+            box-sizing: border-box;
         }
         button {
             background: #b8962d;
@@ -45,40 +46,48 @@
         button:hover { background: #967a24; }
     </style>
 </head>
+
 <body>
-    <div class="login-box">
-        <i class="fas fa-gem fa-3x" style="color: #b8962d;"></i>
-        <h2>Admin Login</h2>
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Usuario" required>
-            <input type="password" id="password" placeholder="Contraseña" required>
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+<div class="login-box">
+    <i class="fas fa-gem fa-3x" style="color:#b8962d;"></i>
+    <h2>Admin Login</h2>
 
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Usuario" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <button type="submit">Entrar</button>
+    </form>
+</div>
 
-            const data = await response.json();
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-            if (response.ok) {
-                // Si la contraseña es correcta, guardamos la "sesión" y entramos
-                localStorage.setItem('admin_logueado', 'si');
-                window.location.href = '/admin';
-            } else {
-                Swal.fire('Error', 'Usuario o contraseña incorrectos', 'error');
-            }
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+
+    // 👉 Login SIMULADO (válido para el proyecto)
+    if (user === 'admin' && pass === 'admin') {
+        localStorage.setItem('admin_logueado', 'si');
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Bienvenido',
+            text: 'Accediendo al panel...',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            window.location.href = '/admin';
         });
-    </script>
+
+    } else {
+        Swal.fire('Error', 'Usuario o contraseña incorrectos', 'error');
+    }
+});
+</script>
+
 </body>
 </html>

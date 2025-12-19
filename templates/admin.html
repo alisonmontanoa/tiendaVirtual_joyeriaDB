@@ -4,221 +4,269 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Joyería</title>
+
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/admin-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <div class="admin-container">
-        <aside class="admin-sidebar">
-            <div class="admin-brand">
-                <h1><i class="fas fa-gem"></i> Admin Joyas</h1>
-            </div>
-            <ul class="admin-menu" id="sideMenu">
-                <li><a href="#dashboard" class="active" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="#products" onclick="showSection('products')"><i class="fas fa-box"></i> Productos</a></li>
-                <li><a href="#categories" onclick="showSection('categories')"><i class="fas fa-tags"></i> Categorías</a></li>
-                <li><a href="#orders" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Órdenes</a></li>
-                <li style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <a href="/" style="color: #ff6b6b;"><i class="fas fa-store"></i> Ir a Tienda</a>
-                </li>
-                
-                
-                <li style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <a href="#" onclick="logout()" style="color: #ff6b6b;">
+<div class="admin-container">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-brand">
+            <h1><i class="fas fa-gem"></i> Admin Joyas</h1>
+        </div>
+
+        <ul class="admin-menu" id="sideMenu">
+            <li>
+                <a href="#dashboard" class="active" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="#products" onclick="showSection('products')">
+                    <i class="fas fa-box"></i> Productos
+                </a>
+            </li>
+
+            <li>
+                <a href="#categories" onclick="showSection('categories')">
+                    <i class="fas fa-tags"></i> Categorías
+                </a>
+            </li>
+
+            <li>
+                <a href="#orders" onclick="showSection('orders')">
+                    <i class="fas fa-shopping-bag"></i> Órdenes
+                </a>
+            </li>
+
+            <li style="margin-top:auto; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.1);">
+                <a href="/" style="color:#ff6b6b;">
+                    <i class="fas fa-store"></i> Ir a Tienda
+                </a>
+            </li>
+
+            <li>
+                <a href="#" onclick="logout()" style="color:#ff6b6b;">
                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                    </a>
-                </li>               
-            </ul>
-        </aside>
+                </a>
+            </li>
+        </ul>
+    </aside>
 
-        <main class="admin-main">
-            <header class="admin-header">
-                <h2 id="sectionTitle">Dashboard de Ventas</h2>
-                <div class="admin-actions">
-                    <button class="btn btn-primary" id="globalAddBtn" style="display: none;" onclick="handleGlobalAdd()">
-                        <i class="fas fa-plus"></i> <span id="addBtnText">Agregar</span>
-                    </button>
-                    <div class="admin-user">
-                        <span>Admin</span>
-                        <div class="avatar"><i class="fas fa-user"></i></div>
+    <!-- MAIN -->
+    <main class="admin-main">
+
+        <!-- HEADER -->
+        <header class="admin-header">
+            <h2 id="sectionTitle">Dashboard de Ventas</h2>
+
+            <div class="admin-actions">
+                <button class="btn btn-primary" id="globalAddBtn" style="display:none;" onclick="handleGlobalAdd()">
+                    <i class="fas fa-plus"></i>
+                    <span id="addBtnText">Agregar</span>
+                </button>
+
+                <div class="admin-user">
+                    <span>Admin</span>
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <div class="admin-content">
+
+            <!-- LOADING -->
+            <div id="loadingOverlay" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); z-index:9999; text-align:center; padding-top:20%;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color:#d4af37;"></i>
+                <p style="margin-top:1rem; font-weight:500;">Procesando datos...</p>
+            </div>
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="section-content">
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <div class="stat-icon sales"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">Bs. 0</h3>
+                            <p>Ingresos Totales</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon orders"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalSales">0</h3>
+                            <p>Ventas Exitosas</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon users"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="failedPayments">0</h3>
+                            <p>Pagos Fallidos</p>
+                        </div>
                     </div>
                 </div>
-            </header>
 
-            <div class="admin-content">
-                <div id="loadingOverlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center; padding-top: 20%;">
-                    <i class="fas fa-spinner fa-spin fa-3x" style="color: #d4af37;"></i>
-                    <p style="margin-top: 1rem; font-weight: 500;">Procesando datos...</p>
+                <div class="chart-container">
+                    <h3>Rendimiento de Ventas</h3>
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </section>
+
+            <!-- PRODUCTS -->
+            <section id="products" class="section-content" style="display:none;">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Vistas</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="productsTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- CATEGORIES -->
+            <section id="categories" class="section-content" style="display:none;">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="categoriesTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ORDERS -->
+            <section id="orders" class="section-content" style="display:none;">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Nro Orden</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Detalle</th>
+                        </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- MODALES -->
+<!-- Producto -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="productModalTitle">Nuevo Producto</h3>
+            <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <form id="productForm">
+                <input type="hidden" id="editProductId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="productName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (Bs)</label>
+                        <input type="number" id="productPrice" step="0.01" class="form-control" required>
+                    </div>
                 </div>
 
-                <section id="dashboard" class="section-content">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon sales"><i class="fas fa-money-bill-wave"></i></div>
-                            <div class="stat-info">
-                                <h3 id="totalRevenue">Bs. 0</h3>
-                                <p>Ingresos Totales</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orders"><i class="fas fa-shopping-cart"></i></div>
-                            <div class="stat-info">
-                                <h3 id="totalSales">0</h3>
-                                <p>Ventas Exitosas</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon users"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="stat-info">
-                                <h3 id="failedPayments">0</h3>
-                                <p>Pagos Fallidos</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-container" style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                        <h3>Rendimiento de Ventas</h3>
-                        <canvas id="salesChart" height="100"></canvas>
-                    </div>
-                </section>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="productDescription" class="form-control"></textarea>
+                </div>
 
-                <section id="products" class="section-content" style="display: none;">
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Imagen</th>
-                                    <th>Producto</th>
-                                    <th>Categoría</th>
-                                    <th>Precio</th>
-                                    <th>Vistas</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productsTable"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="categories" class="section-content" style="display: none;">
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Descripción</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="categoriesTable"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="orders" class="section-content" style="display: none;">
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Nro Orden</th>
-                                    <th>Cliente</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                    <th>Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTableBody"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="productModalTitle">Nuevo Producto</h3>
-                <button class="modal-close" onclick="closeProductModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="productForm">
-                    <input type="hidden" id="editProductId">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="productName" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Precio (Bs)</label>
-                            <input type="number" class="form-control" id="productPrice" step="0.01" required>
-                        </div>
-                    </div>
+                <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" id="productDescription" rows="2"></textarea>
+                        <label>Categoría</label>
+                        <select id="productCategory" class="form-control" required></select>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Categoría</label>
-                            <select class="form-control" id="productCategory" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Fotos (Múltiples)</label>
-                            <input type="file" id="productPhotos" class="form-control" accept="image/*" multiple onchange="previewImages()">
-                            <div id="photoPreview" style="display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap;"></div>
-                        </div>
-                    </div>
+
                     <div class="form-group">
-                        <label class="form-label">Características</label>
-                        <textarea class="form-control" id="productCharacteristics" placeholder="Escribe detalles (ej: Oro 14k)"></textarea>
-                        <small style="color: #888;">Puedes escribir texto normal o formato JSON.</small>
+                        <label>Fotos</label>
+                        <input type="file" id="productPhotos" multiple accept="image/*" onchange="previewImages()">
+                        <div id="photoPreview"></div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveProduct()">Guardar Producto</button>
-            </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Características</label>
+                    <textarea id="productCharacteristics" class="form-control"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveProduct()">Guardar</button>
         </div>
     </div>
+</div>
 
-    <div id="categoryModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Nueva Categoría</h3>
-                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="categoryForm">
-                    <div class="form-group">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="catName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" id="catDesc" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveCategory()">Guardar</button>
-            </div>
+<!-- Categoría -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nueva Categoría</h3>
+            <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="catName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="catDesc" class="form-control"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveCategory()">Guardar</button>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/static/js/admin.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/static/js/admin.js"></script>
 </body>
-
-<li>
-    <a href="#" onclick="cerrarSesion()" style="color: #d10101;">
-        <i class="fas fa-sign-out-alt"></i> Salir
-    </a>
-</li>
-
 </html>

@@ -3,185 +3,186 @@ let currentPage = 1;
 let allProducts = [];
 let filteredProducts = [];
 
+// ===============================
+//  UTILIDADES
+// ===============================
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 }
 
-// Cargar productos
+// ===============================
+//  CARGAR PRODUCTOS
+// ===============================
 async function loadProducts(page = 1, limit = 12) {
     try {
         const categoryId = getQueryParam("category");
-
         let url = `${API_URL}/products`;
+
         if (categoryId) {
             url += `?category=${categoryId}`;
         }
 
         const response = await fetch(url);
         const products = await response.json();
-        
+
         allProducts = products;
         filteredProducts = [...products];
 
         displayProducts(currentPage, limit);
         updatePagination();
-        
     } catch (error) {
-        console.error('Error cargando productos:', error);
+        console.error("Error cargando productos:", error);
     }
 }
 
-// Mostrar productos
+// ===============================
+//  MOSTRAR PRODUCTOS
+// ===============================
 function displayProducts(page = 1, limit = 12) {
     const start = (page - 1) * limit;
     const end = start + limit;
     const productsToShow = filteredProducts.slice(start, end);
-    
-    const container = document.getElementById('productsGrid');
-    
+
+    const container = document.getElementById("productsGrid");
+
     if (productsToShow.length === 0) {
         container.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
-                <i class="fas fa-search fa-3x" style="color: #ddd; margin-bottom: 1rem;"></i>
+                <i class="fas fa-search fa-3x" style="color: #ddd;"></i>
                 <h3>No se encontraron productos</h3>
                 <p>Intenta con otros filtros o categorías</p>
             </div>
         `;
         return;
     }
-    
-    container.innerHTML = '';
-    
+
+    container.innerHTML = "";
     productsToShow.forEach(product => {
-        const productCard = createProductCard(product);
-        container.appendChild(productCard);
+        container.appendChild(createProductCard(product));
     });
-    
-    // Actualizar contador
-    if (document.getElementById('resultsCount')) {
-        document.getElementById('resultsCount').textContent = 
+
+    if (document.getElementById("resultsCount")) {
+        document.getElementById("resultsCount").textContent =
             `Mostrando ${productsToShow.length} de ${filteredProducts.length} productos`;
     }
 }
 
-// Crear tarjeta de producto
+// ===============================
+//  TARJETA DE PRODUCTO
+// ===============================
 function createProductCard(product) {
-    const div = document.createElement('div');
-    div.className = 'product-card';
-    
-    const mainPhoto = product.photos && product.photos.length > 0 
-        ? product.photos[0] 
-        : '/static/images/placeholder.jpg';
-    
+    const div = document.createElement("div");
+    div.className = "product-card";
+
+    const mainPhoto = product.photos && product.photos.length > 0
+        ? product.photos[0]
+        : "/static/images/placeholder.jpg";
+
     div.innerHTML = `
-        <img src="${mainPhoto}" alt="${product.name}" class="product-img" 
-             onclick="viewProductDetail('${product._id}')" style="cursor: pointer;">
+        <img src="${mainPhoto}" alt="${product.name}" class="product-img"
+             onclick="viewProductDetail('${product._id}')" style="cursor:pointer;">
         <div class="product-info">
-            <h3 class="product-title" onclick="viewProductDetail('${product._id}')" style="cursor: pointer;">
+            <h3 class="product-title" onclick="viewProductDetail('${product._id}')" style="cursor:pointer;">
                 ${product.name}
             </h3>
-            <p class="product-description">${product.description || 'Producto de joyería'}</p>
+            <p class="product-description">${product.description || "Producto de joyería"}</p>
             <div class="product-meta">
                 <span><i class="fas fa-eye"></i> ${product.views || 0}</span>
                 <span><i class="fas fa-shopping-bag"></i> ${product.purchases || 0}</span>
             </div>
             <div class="product-price">Bs ${product.price.toFixed(2)}</div>
-            <button class="btn btn-primary btn-block" onclick="addToCart('${product._id}', '${product.name}', ${product.price})">
+            <button class="btn btn-primary btn-block" onclick="addToCart('${product._id}')">
                 <i class="fas fa-cart-plus"></i> Añadir al Carrito
             </button>
         </div>
     `;
-    
     return div;
 }
 
-// Cargar categorías para filtro
+// ===============================
+//  CATEGORÍAS
+// ===============================
 async function loadCategories() {
     try {
         const response = await fetch(`${API_URL}/categories`);
         const categories = await response.json();
-        
-        const select = document.getElementById('categoryFilter');
-        if (select) {
-            select.innerHTML = '<option value="">Todas las categorías</option>';
-            
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category._id;
-                option.textContent = category.name;
-                select.appendChild(option);
-            });
 
-            const selectedCategory = getQueryParam("category");
-            if (selectedCategory) {
-                select.value = selectedCategory;
-            }
+        const select = document.getElementById("categoryFilter");
+        if (!select) return;
+
+        select.innerHTML = `<option value="">Todas las categorías</option>`;
+
+        categories.forEach(category => {
+            const option = document.createElement("option");
+            option.value = category._id;
+            option.textContent = category.name;
+            select.appendChild(option);
+        });
+
+        const selectedCategory = getQueryParam("category");
+        if (selectedCategory) {
+            select.value = selectedCategory;
         }
-        
     } catch (error) {
-        console.error('Error cargando categorías:', error);
+        console.error("Error cargando categorías:", error);
     }
 }
 
-// Buscar productos
+// ===============================
+//  BÚSQUEDA / FILTROS
+// ===============================
 function searchProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    filteredProducts = allProducts.filter(product => 
-        product.name.toLowerCase().includes(searchTerm) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm))
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+
+    filteredProducts = allProducts.filter(p =>
+        p.name.toLowerCase().includes(searchTerm) ||
+        (p.description && p.description.toLowerCase().includes(searchTerm))
     );
-    
+
     currentPage = 1;
     displayProducts();
     updatePagination();
 }
 
-// Filtrar por categoría
 function filterProducts() {
-    const categoryId = document.getElementById('categoryFilter').value;
-    
-    if (!categoryId) {
-        filteredProducts = [...allProducts];
-    } else {
-        filteredProducts = allProducts.filter(product => 
-        String(product.category_id) === categoryId
-        );
-    }
-    
+    const categoryId = document.getElementById("categoryFilter").value;
+
+    filteredProducts = categoryId
+        ? allProducts.filter(p => String(p.category_id) === categoryId)
+        : [...allProducts];
+
     currentPage = 1;
     displayProducts();
     updatePagination();
 }
 
-// Ordenar productos
+// ===============================
+//  ORDENAR
+// ===============================
 function sortProducts() {
-    const sortBy = document.getElementById('sortFilter').value;
-    
+    const sortBy = document.getElementById("sortFilter").value;
+
     filteredProducts.sort((a, b) => {
-        switch(sortBy) {
-            case 'price_asc':
-                return a.price - b.price;
-            case 'price_desc':
-                return b.price - a.price;
-            case 'views':
-                return (b.views || 0) - (a.views || 0);
-            case 'sales':
-                return (b.purchases || 0) - (a.purchases || 0);
-            default: // newest
-                return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        switch (sortBy) {
+            case "price_asc": return a.price - b.price;
+            case "price_desc": return b.price - a.price;
+            case "views": return (b.views || 0) - (a.views || 0);
+            case "sales": return (b.purchases || 0) - (a.purchases || 0);
+            default: return new Date(b.created_at || 0) - new Date(a.created_at || 0);
         }
     });
-    
+
     displayProducts();
 }
 
-// Paginación
+// ===============================
+//  PAGINACIÓN
+// ===============================
 function changePage(direction) {
     const totalPages = Math.ceil(filteredProducts.length / 12);
     const newPage = currentPage + direction;
-    
+
     if (newPage >= 1 && newPage <= totalPages) {
         currentPage = newPage;
         displayProducts(currentPage);
@@ -191,126 +192,93 @@ function changePage(direction) {
 
 function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / 12);
-    
-    document.getElementById('prevPage').disabled = currentPage <= 1;
-    document.getElementById('nextPage').disabled = currentPage >= totalPages;
-    document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+    document.getElementById("prevPage").disabled = currentPage <= 1;
+    document.getElementById("nextPage").disabled = currentPage >= totalPages;
+    document.getElementById("pageInfo").textContent = `Página ${currentPage} de ${totalPages}`;
 }
 
-// Cargar detalle del producto
+// ===============================
+//  DETALLE DE PRODUCTO
+// ===============================
 async function loadProductDetail(productId) {
     try {
         const response = await fetch(`${API_URL}/products/${productId}`);
         const product = await response.json();
-        
-        // Actualizar información de la página
-        document.getElementById('productTitle').textContent = product.name;
-        document.getElementById('productName').textContent = product.name;
-        document.getElementById('productDescription').textContent = product.description || '';
-        document.getElementById('productPrice').textContent = `Bs ${product.price.toFixed(2)}`;
-        document.getElementById('viewsCount').textContent = product.views || 0;
-        document.getElementById('salesCount').textContent = product.purchases || 0;
-        
-        // Actualizar imágenes
-        const mainImage = document.getElementById('productMainImage');
-        const thumbnails = document.getElementById('productThumbnails');
-        
-        if (product.photos && product.photos.length > 0) {
+
+        document.getElementById("productTitle").textContent = product.name;
+        document.getElementById("productName").textContent = product.name;
+        document.getElementById("productDescription").textContent = product.description || "";
+        document.getElementById("productPrice").textContent = `Bs ${product.price.toFixed(2)}`;
+        document.getElementById("viewsCount").textContent = product.views || 0;
+        document.getElementById("salesCount").textContent = product.purchases || 0;
+
+        const mainImage = document.getElementById("productMainImage");
+        const thumbnails = document.getElementById("productThumbnails");
+
+        if (product.photos?.length) {
             mainImage.src = product.photos[0];
-            thumbnails.innerHTML = '';
-            
+            thumbnails.innerHTML = "";
+
             product.photos.forEach((photo, index) => {
-                const thumb = document.createElement('img');
-                thumb.src = photo;
-                thumb.style.width = '60px';
-                thumb.style.height = '60px';
-                thumb.style.objectFit = 'cover';
-                thumb.style.cursor = 'pointer';
-                thumb.style.borderRadius = '5px';
-                thumb.style.border = index === 0 ? '2px solid var(--color-primary)' : 'none';
-                thumb.onclick = () => {
+                const img = document.createElement("img");
+                img.src = photo;
+                img.style.width = "60px";
+                img.style.height = "60px";
+                img.style.objectFit = "cover";
+                img.style.cursor = "pointer";
+                img.style.border = index === 0 ? "2px solid var(--color-primary)" : "none";
+                img.onclick = () => {
                     mainImage.src = photo;
-                    // Remover borde de todas las thumbs
-                    thumbnails.querySelectorAll('img').forEach(img => {
-                        img.style.border = 'none';
-                    });
-                    // Agregar borde a la thumb seleccionada
-                    thumb.style.border = '2px solid var(--color-primary)';
+                    thumbnails.querySelectorAll("img").forEach(i => i.style.border = "none");
+                    img.style.border = "2px solid var(--color-primary)";
                 };
-                thumbnails.appendChild(thumb);
+                thumbnails.appendChild(img);
             });
         }
-        
-        // Actualizar características
-        const characteristicsDiv = document.getElementById('productCharacteristics');
-        if (product.characteristics && typeof product.characteristics === 'object') {
-            characteristicsDiv.innerHTML = '';
-            
-            Object.entries(product.characteristics).forEach(([key, value]) => {
-                const charDiv = document.createElement('div');
-                charDiv.innerHTML = `
-                    <div style="font-weight: 600; color: var(--color-dark);">${key}:</div>
-                    <div style="color: var(--color-gray);">${value}</div>
-                `;
-                characteristicsDiv.appendChild(charDiv);
-            });
-        }
-        
-        // Cargar productos relacionados (misma categoría)
+
         loadRelatedProducts(product.category_id, productId);
-        
     } catch (error) {
-        console.error('Error cargando detalle del producto:', error);
+        console.error("Error cargando detalle:", error);
     }
 }
-document.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get("id");
 
-    if (productId && document.getElementById("productTitle")) {
-        loadProductDetail(productId);
-    }
-});
-
-
-// Cargar productos relacionados
+// ===============================
+//  RELACIONADOS
+// ===============================
 async function loadRelatedProducts(categoryId, excludeId) {
     try {
         const response = await fetch(`${API_URL}/products?category=${categoryId}`);
         const products = await response.json();
-        
-        const container = document.getElementById('relatedProducts');
-        container.innerHTML = '';
-        
-        // Filtrar el producto actual y tomar máximo 4 productos
-        const relatedProducts = products
-            .filter(p => p._id !== excludeId)
-            .slice(0, 4);
-        
-        if (relatedProducts.length === 0) {
-            container.innerHTML = '<p>No hay productos relacionados disponibles.</p>';
-            return;
-        }
-        
-        relatedProducts.forEach(product => {
-            const productCard = createProductCard(product);
-            container.appendChild(productCard);
-        });
-        
+
+        const container = document.getElementById("relatedProducts");
+        container.innerHTML = "";
+
+        products.filter(p => p._id !== excludeId).slice(0, 4)
+            .forEach(p => container.appendChild(createProductCard(p)));
     } catch (error) {
-        console.error('Error cargando productos relacionados:', error);
+        console.error("Error cargando relacionados:", error);
     }
 }
 
-// Funciones auxiliares
+// ===============================
+//  NAVEGACIÓN
+// ===============================
 function viewProductDetail(productId) {
     window.location.href = `/producto_detalle.html?id=${productId}`;
 }
 
-// Inicializar
-if (document.getElementById('productsGrid')) {
-    document.addEventListener('DOMContentLoaded', function() {
+// ===============================
+//  INIT
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("productsGrid")) {
         loadProducts();
         loadCategories();
-    });
-}
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+    if (productId && document.getElementById("productTitle")) {
+        loadProductDetail(productId);
+    }
+});

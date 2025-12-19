@@ -3,66 +3,78 @@ from bson import ObjectId
 from database import db  
 
 carts_bp = Blueprint("carts", __name__)
-
-# Obtener colección de carritos
 carts = db.get_collection("carts")
 
-# Crear un carrito vacío
+# Crear carrito
 @carts_bp.route("/carts", methods=["POST"])
 def create_cart():
     cart_id = carts.insert_one({
-        "items": []   # lista vacia al inicio
+        "items": []
     }).inserted_id
+    return jsonify({"id": str(cart_id)}), 201
 
-    return jsonify({"message": "Cart created", "id": str(cart_id)}), 201
 
-
-# Agregar un producto al carrito
+# Agregar producto
 @carts_bp.route("/carts/<id>/add", methods=["POST"])
 def add_to_cart(id):
     data = request.json
+
     product = {
         "product_id": data["product_id"],
         "name": data["name"],
-        "price": data["price"],
-        "quantity": data["quantity"]
+        "price": float(data["price"]),
+        "quantity": int(data.get("quantity", 1))
     }
 
-    # Verificar si el producto ya está en el carrito (si se quiere actualizar la cantidad)
     cart = carts.find_one({"_id": ObjectId(id)})
-    if cart:
-        existing_product = next((item for item in cart["items"] if item["product_id"] == data["product_id"]), None)
-        if existing_product:
-            # Actualizar la cantidad si el producto ya está en el carrito
-            carts.update_one(
-                {"_id": ObjectId(id), "items.product_id": data["product_id"]},
-                {"$inc": {"items.$.quantity": data["quantity"]}}
-            )
-        else:
-            # Si el producto no está en el carrito, agregarlo
-            carts.update_one(
-                {"_id": ObjectId(id)},
-                {"$push": {"items": product}}
-            )
-    else:
-        # Si el carrito no existe, crearlo
+
+    if not cart:
         carts.insert_one({
             "_id": ObjectId(id),
             "items": [product]
         })
+        return jsonify({"message": "Cart created and product added"}), 201
 
-    return jsonify({"message": "Product added to cart"}), 200
+    existing = next((i for i in cart["items"] if i["product_id"] == product["product_id"]), None)
+
+    if existing:
+        carts.update_one(
+            {"_id": ObjectId(id), "items.product_id": product["product_id"]},
+            {"$inc": {"items.$.quantity": product["quantity"]}}
+        )
+    else:
+        carts.update_one(
+            {"_id": ObjectId(id)},
+            {"$push": {"items": product}}
+        )
+
+    return jsonify({"message": "Product added"}), 200
 
 
-# Obtener carrito
+# Obtener carrito con total
 @carts_bp.route("/carts/<id>", methods=["GET"])
 def get_cart(id):
     cart = carts.find_one({"_id": ObjectId(id)})
     if not cart:
         return jsonify({"error": "Cart not found"}), 404
 
-    cart["_id"] = str(cart["_id"])  # Convertir ObjectId a string
-    return jsonify(cart), 200
+    total = sum(item["price"] * item["quantity"] for item in cart["items"])
+
+    return jsonify({
+        "id": str(cart["_id"]),
+        "items": cart["items"],
+        "total": round(total, 2)
+    }), 200
+
+
+# Eliminar producto específico
+@carts_bp.route("/carts/<id>/item/<product_id>", methods=["DELETE"])
+def remove_item(id, product_id):
+    carts.update_one(
+        {"_id": ObjectId(id)},
+        {"$pull": {"items": {"product_id": product_id}}}
+    )
+    return jsonify({"message": "Item removed"}), 200
 
 
 # Vaciar carrito
