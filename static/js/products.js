@@ -1,334 +1,178 @@
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = "/api";
+let allProducts = [];
 
-function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-}
+document.addEventListener('DOMContentLoaded', () => {
+    loadProducts();
+    updateCartCount(); // Actualizar el numerito del carrito al cargar
+    
+    // Filtros
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+    document.getElementById('sortFilter').addEventListener('change', applyFilters);
+});
 
-// Cargar productos
-async function loadProducts(page = 1, limit = 12) {
-    try {
-        const response = await fetch(`${API_URL}/products`);
-        const products = await response.json();
-        
-        allProducts = products;
-        filteredProducts = [...products];
-        
-        displayProducts(page, limit);
-        updatePagination();
-        
-    } catch (error) {
-        console.error('Error cargando productos:', error);
-    }
-}
-
-async function loadProductsPage() {
-    const categoryId = getQueryParam("category");
-
-    let url;
-
-    if (categoryId) {
-        // MOSTRAR SOLO LOS PRODUCTOS DE ESA CATEGORIA
-        url = `${API_URL}/products/category/${categoryId}`;
-    } else {
-        // MOSTRAR TODOS LOS PRODUCTOS
-        url = `${API_URL}/products`;
-    }
+// 1. CARGAR PRODUCTOS
+async function loadProducts() {
+    const container = document.getElementById('products-grid');
+    container.innerHTML = '<div style="width:100%; text-align:center;"><i class="fas fa-spinner fa-spin fa-3x" style="color:#d4af37"></i><p>Cargando...</p></div>';
 
     try {
-        const response = await fetch(url);
-        const products = await response.json();
-
-        const container = document.getElementById("products-grid");
-        container.innerHTML = "";
-
-        products.forEach(product => {
-            const card = createProductCard(product);
-            container.appendChild(card);
-        });
-
+        const res = await fetch(`${API_URL}/products`);
+        allProducts = await res.json();
+        renderProducts(allProducts);
+        populateCategoryFilter(allProducts);
     } catch (error) {
-        console.error("Error cargando productos:", error);
+        console.error("Error:", error);
+        container.innerHTML = '<p>Error al conectar con el servidor.</p>';
     }
 }
 
-// Mostrar productos
-function displayProducts(page = 1, limit = 12) {
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const productsToShow = filteredProducts.slice(start, end);
-    
-    const container = document.getElementById('productsGrid');
-    
-    if (productsToShow.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
-                <i class="fas fa-search fa-3x" style="color: #ddd; margin-bottom: 1rem;"></i>
-                <h3>No se encontraron productos</h3>
-                <p>Intenta con otros filtros o categorías</p>
-            </div>
-        `;
+// 2. MOSTRAR EN PANTALLA
+function renderProducts(products) {
+    const container = document.getElementById('products-grid');
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+        container.innerHTML = '<p style="text-align:center; width:100%;">No se encontraron productos.</p>';
         return;
     }
-    
-    container.innerHTML = '';
-    
-    productsToShow.forEach(product => {
-        const productCard = createProductCard(product);
-        container.appendChild(productCard);
-    });
-    
-    // Actualizar contador
-    if (document.getElementById('resultsCount')) {
-        document.getElementById('resultsCount').textContent = 
-            `Mostrando ${productsToShow.length} de ${filteredProducts.length} productos`;
-    }
-}
 
-// Crear tarjeta de producto
-function createProductCard(product) {
-    const div = document.createElement('div');
-    div.className = 'product-card';
-    
-    const mainPhoto = product.photos && product.photos.length > 0 
-        ? product.photos[0] 
-        : '/static/images/placeholder.jpg';
-    
-    div.innerHTML = `
-        <img src="${mainPhoto}" alt="${product.name}" class="product-img" 
-             onclick="viewProductDetail('${product._id}')" style="cursor: pointer;">
-        <div class="product-info">
-            <h3 class="product-title" onclick="viewProductDetail('${product._id}')" style="cursor: pointer;">
-                ${product.name}
-            </h3>
-            <p class="product-description">${product.description || 'Producto de joyería'}</p>
-            <div class="product-meta">
-                <span><i class="fas fa-eye"></i> ${product.views || 0}</span>
-                <span><i class="fas fa-shopping-bag"></i> ${product.purchases || 0}</span>
+    products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.style.cssText = "background:white; border:1px solid #eee; border-radius:10px; padding:15px; text-align:center; transition:0.3s;";
+        
+        // NOTA: Usamos p.image y p.id (coinciden con app.py)
+        card.innerHTML = `
+            <div style="height:200px; overflow:hidden; margin-bottom:15px;">
+                <img src="${p.image}" alt="${p.name}" style="width:100%; height:100%; object-fit:contain;">
             </div>
-            <div class="product-price">Bs ${product.price.toFixed(2)}</div>
-            <button class="btn btn-primary btn-block" onclick="addToCart('${product._id}', '${product.name}', ${product.price})">
-                <i class="fas fa-cart-plus"></i> Añadir al Carrito
+            <h3 style="font-size:1.1rem; margin-bottom:5px;">${p.name}</h3>
+            <p style="color:#888; font-size:0.9rem;">${p.category}</p>
+            <div style="color:#d4af37; font-weight:bold; font-size:1.2rem; margin:10px 0;">Bs ${p.price.toFixed(2)}</div>
+            <button onclick="addToCart(${p.id})" style="background:#333; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; width:100%;">
+                <i class="fas fa-cart-plus"></i> Agregar al Carrito
             </button>
-        </div>
-    `;
-    
-    return div;
-}
-
-// Cargar categorías para filtro
-async function loadCategories() {
-    try {
-        const response = await fetch(`${API_URL}/categories`);
-        const categories = await response.json();
-        
-        const select = document.getElementById('categoryFilter');
-        if (select) {
-            select.innerHTML = '<option value="">Todas las categorías</option>';
-            
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category._id;
-                option.textContent = category.name;
-                select.appendChild(option);
-            });
-        }
-        
-    } catch (error) {
-        console.error('Error cargando categorías:', error);
-    }
-}
-
-// Buscar productos
-function searchProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    filteredProducts = allProducts.filter(product => 
-        product.name.toLowerCase().includes(searchTerm) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm))
-    );
-    
-    currentPage = 1;
-    displayProducts();
-    updatePagination();
-}
-
-// Filtrar por categoría
-function filterProducts() {
-    const categoryId = document.getElementById('categoryFilter').value;
-    
-    if (!categoryId) {
-        filteredProducts = [...allProducts];
-    } else {
-        filteredProducts = allProducts.filter(product => 
-            product.category_id === categoryId
-        );
-    }
-    
-    currentPage = 1;
-    displayProducts();
-    updatePagination();
-}
-
-// Ordenar productos
-function sortProducts() {
-    const sortBy = document.getElementById('sortFilter').value;
-    
-    filteredProducts.sort((a, b) => {
-        switch(sortBy) {
-            case 'price_asc':
-                return a.price - b.price;
-            case 'price_desc':
-                return b.price - a.price;
-            case 'views':
-                return (b.views || 0) - (a.views || 0);
-            case 'sales':
-                return (b.purchases || 0) - (a.purchases || 0);
-            default: // newest
-                return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-        }
+        `;
+        container.appendChild(card);
     });
-    
-    displayProducts();
 }
 
-// Paginación
-function changePage(direction) {
-    const totalPages = Math.ceil(filteredProducts.length / 12);
-    const newPage = currentPage + direction;
-    
-    if (newPage >= 1 && newPage <= totalPages) {
-        currentPage = newPage;
-        displayProducts(currentPage);
-        updatePagination();
+// 3. AGREGAR AL CARRITO (¡ESTA ES LA PARTE QUE FALTABA!)
+async function addToCart(productId) {
+    let cartId = localStorage.getItem('cartId');
+    if (!cartId) {
+        cartId = 'cart_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('cartId', cartId);
     }
-}
 
-function updatePagination() {
-    const totalPages = Math.ceil(filteredProducts.length / 12);
-    
-    document.getElementById('prevPage').disabled = currentPage <= 1;
-    document.getElementById('nextPage').disabled = currentPage >= totalPages;
-    document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
-    
-    totalPages = totalPages; // Actualizar variable global
-}
-
-// Cargar detalle del producto
-async function loadProductDetail(productId) {
     try {
-        const response = await fetch(`${API_URL}/products/${productId}`);
-        const product = await response.json();
-        
-        // Actualizar información de la página
-        document.getElementById('productTitle').textContent = product.name;
-        document.getElementById('productName').textContent = product.name;
-        document.getElementById('productDescription').textContent = product.description || '';
-        document.getElementById('productPrice').textContent = `Bs ${product.price.toFixed(2)}`;
-        document.getElementById('viewsCount').textContent = product.views || 0;
-        document.getElementById('salesCount').textContent = product.purchases || 0;
-        
-        // Actualizar imágenes
-        const mainImage = document.getElementById('productMainImage');
-        const thumbnails = document.getElementById('productThumbnails');
-        
-        if (product.photos && product.photos.length > 0) {
-            mainImage.src = product.photos[0];
-            thumbnails.innerHTML = '';
-            
-            product.photos.forEach((photo, index) => {
-                const thumb = document.createElement('img');
-                thumb.src = photo;
-                thumb.style.width = '60px';
-                thumb.style.height = '60px';
-                thumb.style.objectFit = 'cover';
-                thumb.style.cursor = 'pointer';
-                thumb.style.borderRadius = '5px';
-                thumb.style.border = index === 0 ? '2px solid var(--color-primary)' : 'none';
-                thumb.onclick = () => {
-                    mainImage.src = photo;
-                    // Remover borde de todas las thumbs
-                    thumbnails.querySelectorAll('img').forEach(img => {
-                        img.style.border = 'none';
-                    });
-                    // Agregar borde a la thumb seleccionada
-                    thumb.style.border = '2px solid var(--color-primary)';
-                };
-                thumbnails.appendChild(thumb);
-            });
-        }
-        
-        // Actualizar características
-        const characteristicsDiv = document.getElementById('productCharacteristics');
-        if (product.characteristics && typeof product.characteristics === 'object') {
-            characteristicsDiv.innerHTML = '';
-            
-            Object.entries(product.characteristics).forEach(([key, value]) => {
-                const charDiv = document.createElement('div');
-                charDiv.innerHTML = `
-                    <div style="font-weight: 600; color: var(--color-dark);">${key}:</div>
-                    <div style="color: var(--color-gray);">${value}</div>
-                `;
-                characteristicsDiv.appendChild(charDiv);
-            });
-        }
-        
-        // Registrar vista
-        await fetch(`${API_URL}/products/${productId}/view`, {
-            method: 'POST'
+        const res = await fetch(`${API_URL}/carts/${cartId}/add`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ product_id: productId })
         });
-        
-        // Cargar productos relacionados (misma categoría)
-        loadRelatedProducts(product.category_id, productId);
-        
-    } catch (error) {
-        console.error('Error cargando detalle del producto:', error);
+
+        if (res.ok) {
+            updateCartCount(); // Actualizar contador y modal
+            openCartModal();   // Abrir modal automáticamente para ver que se agregó
+            
+            // Alerta bonita
+            Swal.fire({
+                icon: 'success',
+                title: '¡Agregado!',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        } else {
+            Swal.fire('Error', 'No se pudo agregar el producto', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        Swal.fire('Error', 'Fallo de conexión', 'error');
     }
 }
 
-// Cargar productos relacionados
-async function loadRelatedProducts(categoryId, excludeId) {
+// 4. ACTUALIZAR MODAL DEL CARRITO
+async function updateCartCount() {
+    let cartId = localStorage.getItem('cartId');
+    if (!cartId) return;
+
     try {
-        const response = await fetch(`${API_URL}/products/category/${categoryId}`);
-        const products = await response.json();
+        const res = await fetch(`${API_URL}/carts/${cartId}`);
+        const cart = await res.json();
         
-        const container = document.getElementById('relatedProducts');
-        container.innerHTML = '';
+        // Actualizar número rojo
+        const count = cart.items ? cart.items.reduce((acc, item) => acc + item.quantity, 0) : 0;
+        document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
         
-        // Filtrar el producto actual y tomar máximo 4 productos
-        const relatedProducts = products
-            .filter(p => p._id !== excludeId)
-            .slice(0, 4);
+        // Llenar el modal
+        const modalItems = document.getElementById('cartModalItems');
+        const modalTotal = document.getElementById('cartModalTotal');
         
-        if (relatedProducts.length === 0) {
-            container.innerHTML = '<p>No hay productos relacionados disponibles.</p>';
-            return;
+        if (modalItems) {
+            modalItems.innerHTML = '';
+            let total = 0;
+            
+            if (cart.items.length === 0) {
+                modalItems.innerHTML = '<p style="text-align:center; padding:20px;">Carrito vacío</p>';
+            } else {
+                cart.items.forEach(item => {
+                    total += item.price * item.quantity;
+                    modalItems.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                            <div style="display:flex; gap:10px;">
+                                <img src="${item.image}" style="width:40px; height:40px; object-fit:cover;">
+                                <div>
+                                    <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                                    <small>${item.quantity} x Bs ${item.price}</small>
+                                </div>
+                            </div>
+                            <strong>Bs ${(item.price * item.quantity).toFixed(2)}</strong>
+                        </div>
+                    `;
+                });
+            }
+            if (modalTotal) modalTotal.textContent = `Bs ${total.toFixed(2)}`;
         }
-        
-        relatedProducts.forEach(product => {
-            const productCard = createProductCard(product);
-            container.appendChild(productCard);
-        });
-        
-    } catch (error) {
-        console.error('Error cargando productos relacionados:', error);
-    }
+    } catch (e) { console.error(e); }
 }
 
-// Funciones auxiliares
-function viewProductDetail(productId) {
-    window.location.href = `/producto_detalle.html?id=${productId}`;
+// 5. FUNCIONES DEL MODAL
+function openCartModal() {
+    const modal = document.getElementById('cartModal');
+    if(modal) modal.style.display = 'flex';
+    updateCartCount();
 }
 
-async function addToCart(productId, productName, productPrice) {
-    // Similar a la función en user.js
-    // Implementar según necesidad
+function closeCartModal() {
+    const modal = document.getElementById('cartModal');
+    if(modal) modal.style.display = 'none';
 }
 
-// Inicializar
-if (document.getElementById('productsGrid')) {
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProducts();
-        loadCategories();
+// 6. FILTROS
+function applyFilters() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const cat = document.getElementById('categoryFilter').value;
+    const sort = document.getElementById('sortFilter').value;
+
+    let filtered = allProducts.filter(p => {
+        const matchesTerm = p.name.toLowerCase().includes(term);
+        const matchesCat = cat === 'all' || p.category === cat;
+        return matchesTerm && matchesCat;
     });
+
+    if(sort === 'price-asc') filtered.sort((a,b) => a.price - b.price);
+    if(sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
+
+    renderProducts(filtered);
+}
+
+function populateCategoryFilter(products) {
+    const select = document.getElementById('categoryFilter');
+    const cats = [...new Set(products.map(p => p.category))];
+    select.innerHTML = '<option value="all">Todas las categorías</option>';
+    cats.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
 }

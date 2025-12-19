@@ -3,22 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos - Joyería Elegante</title>
+    <title>Productos - Joyas Elegantes</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .filters-container {
+            background: white; padding: 2rem; border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin: 2rem auto;
+            max-width: 1200px; display: flex; gap: 1rem; flex-wrap: wrap;
+        }
+        .filter-group { flex: 1; min-width: 200px; display:flex; flex-direction:column; gap:5px;}
+        .filter-input, .filter-select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .products-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem; max-width: 1200px; margin: 0 auto 4rem; padding: 0 1rem;
+        }
+        .cart-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .cart-modal-content {
+            background: white; width: 90%; max-width: 400px; border-radius: 10px; padding: 20px;
+        }
+        .cart-modal-items { max-height: 300px; overflow-y: auto; margin: 15px 0; }
+    </style>
 </head>
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Joyas Elegantes
-            </a>
+            <a href="/" class="logo"><i class="fas fa-gem"></i> Joyas Elegantes</a>
             <div class="nav-links">
                 <a href="/" class="nav-link">Inicio</a>
                 <a href="/productos" class="nav-link active">Productos</a>
-                <button class="cart-btn" onclick="openCart()">
+                <a href="/carrito" class="nav-link">Carrito</a>
+                <button class="cart-btn" onclick="openCartModal()">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
                 </button>
@@ -26,86 +46,51 @@
         </nav>
     </header>
 
-    <main class="products-section">
-        <h1 class="section-title">Nuestra Colección</h1>
+    <div style="background: #f9f9f9; padding-top: 2rem;">
+        <h1 style="text-align: center; color: #333;">Nuestra Colección</h1>
         
-        <div style="background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 2rem;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Buscar Productos</label>
-                    <input type="text" id="searchInput" placeholder="Buscar joya..." class="form-control">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Categoría</label>
-                    <select class="form-control" id="categoryFilter">
-                        <option value="">Todas las categorías</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Ordenar por</label>
-                    <select class="form-control" id="sortFilter">
-                        <option value="newest">Más recientes</option>
-                        <option value="price_asc">Precio: Menor a Mayor</option>
-                        <option value="price_desc">Precio: Mayor a Menor</option>
-                    </select>
-                </div>
+        <div class="filters-container">
+            <div class="filter-group">
+                <label>Buscar</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Buscar joya...">
+            </div>
+            <div class="filter-group">
+                <label>Categoría</label>
+                <select id="categoryFilter" class="filter-select"></select>
+            </div>
+            <div class="filter-group">
+                <label>Ordenar</label>
+                <select id="sortFilter" class="filter-select">
+                    <option value="newest">Recomendados</option>
+                    <option value="price-asc">Precio: Menor a Mayor</option>
+                    <option value="price-desc">Precio: Mayor a Menor</option>
+                </select>
             </div>
         </div>
 
-        <div id="product-grid" class="product-grid">
-            <div style="text-align: center; grid-column: 1 / -1; padding: 3rem;">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color: #d4af37;"></i>
-                <p style="margin-top: 1rem; color: #666;">Cargando tesoros...</p>
-            </div>
-        </div>
+        <div id="products-grid" class="products-grid"></div>
+    </div>
 
-        <div class="pagination-container" style="margin-top: 3rem; text-align: center; display: flex; justify-content: center; gap: 1rem;">
-            <button class="btn btn-outline" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
-            <span>Página 1</span>
-            <button class="btn btn-outline">Siguiente <i class="fas fa-chevron-right"></i></button>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Sobre Nosotros</h3>
-                <p>Joyas únicas para momentos inolvidables.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Contacto</h3>
-                <p>info@joyaselegantes.com</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Joyas Elegantes. Todos los derechos reservados.</p>
-        </div>
-    </footer>
-
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-modal-content">
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <h3>Tu Carrito</h3>
-                <button class="modal-close" onclick="closeCart()">&times;</button>
+                <button onclick="closeCartModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
-            <div class="modal-body" id="cartItems">
+            <div id="cartModalItems" class="cart-modal-items"></div>
+            <div style="border-top:1px solid #eee; padding-top:15px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:15px;">
+                    <span>Total:</span>
+                    <span id="cartModalTotal">Bs 0.00</span>
                 </div>
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">Bs 0.00</span>
-            </div>
-            <div class="modal-footer" style="padding: 1.5rem;">
-                <button class="btn btn-primary btn-block" onclick="window.location.href='/carrito'">
+                <button onclick="window.location.href='/carrito'" style="width:100%; background:#d4af37; color:white; padding:12px; border-radius:5px; border:none; cursor:pointer;">
                     Ver Carrito Completo
                 </button>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/cart.js"></script>
-    <script src="/static/js/user.js"></script> <script>
-        function openCart() { document.getElementById('cartModal').style.display = 'flex'; }
-        function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/products.js"></script>
 </body>
 </html>

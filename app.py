@@ -11,168 +11,181 @@ app.secret_key = 'clave_secreta_para_carrito'
 CORS(app)
 
 # ==========================================
-#  BASE DE DATOS SIMULADA
+#  BASE DE DATOS (Categorías y Productos)
 # ==========================================
 
-products_db = [
-    {
-        "id": 1, 
-        "name": "Anillo de Lujo", 
-        "price": 500.00, 
-        "image": "/static/images/products/anillo.avif", 
-        "category": "joyas"
-    },
-    {
-        "id": 2, 
-        "name": "Collar de Perlas", 
-        "price": 600.00, 
-        "image": "/static/images/products/collar.png", 
-        "category": "joyas"
-    },
-    {
-        "id": 3, 
-        "name": "Aretes Esmeralda", 
-        "price": 1000.00, 
-        "image": "/static/images/products/aretes.jpg", 
-        "category": "joyas"
-    },
-    {
-        "id": 4, 
-        "name": "Conjunto Perlas", 
-        "price": 1200.00, 
-        "image": "/static/images/products/perlas.jpeg", 
-        "category": "joyas"
-    }
+# 1. CATEGORÍAS
+categories_db = [
+    {"id": 1, "name": "Anillos", "description": "Anillos de oro y plata"},
+    {"id": 2, "name": "Collares", "description": "Cadenas y colgantes"},
+    {"id": 3, "name": "Aretes", "description": "Aretes y pendientes"},
+    {"id": 4, "name": "Manillas", "description": "Pulseras y brazaletes"}
 ]
 
-# Almacén de carritos en memoria
+# 2. PRODUCTOS
+products_db = [
+    {"id": 1, "name": "Anillo de Lujo", "price": 500.00, "image": "/static/images/products/anillo.avif", "category": "Anillos", "views": 120},
+    {"id": 2, "name": "Collar de Perlas", "price": 600.00, "image": "/static/images/products/collar.png", "category": "Collares", "views": 85},
+    {"id": 3, "name": "Aretes Esmeralda", "price": 1000.00, "image": "/static/images/products/aretes.jpg", "category": "Aretes", "views": 45},
+    {"id": 4, "name": "Conjunto Perlas", "price": 1200.00, "image": "/static/images/products/perlas.jpeg", "category": "Collares", "views": 30}
+]
+
+# Almacenamiento temporal (se borra al reiniciar servidor)
 carts_storage = {}
+orders_db = []
 
 # ==========================================
-#  RUTAS API (BACKEND)
+#  RUTAS API: CATEGORÍAS Y PRODUCTOS
 # ==========================================
 
-# --- 1. GESTIÓN DE PRODUCTOS (Para Tienda y Admin) ---
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    categories_with_stock = []
+    for cat in categories_db:
+        count = sum(1 for p in products_db if p.get('category') == cat['name'])
+        new_cat = cat.copy()
+        new_cat['stock'] = count
+        categories_with_stock.append(new_cat)
+    return jsonify(categories_with_stock)
+
+@app.route('/api/categories', methods=['POST'])
+def add_category():
+    data = request.json
+    new_cat = {
+        "id": len(categories_db) + 1,
+        "name": data.get("name"),
+        "description": data.get("description", "")
+    }
+    categories_db.append(new_cat)
+    return jsonify({"success": True})
+
+@app.route('/api/categories/<int:cat_id>', methods=['DELETE'])
+def delete_category(cat_id):
+    global categories_db
+    categories_db = [c for c in categories_db if c['id'] != cat_id]
+    return jsonify({"success": True})
 
 @app.route('/api/products', methods=['GET'])
 def get_products_fix():
     return jsonify(products_db)
 
-# NUEVO: Ruta para AGREGAR productos desde el Admin
 @app.route('/api/products', methods=['POST'])
 def add_product():
     data = request.json
     new_id = len(products_db) + 1
+    default_img = "/static/images/products/anillo.avif"
+    
     new_product = {
         "id": new_id,
         "name": data.get("name", "Nuevo Producto"),
         "price": float(data.get("price", 0)),
-        "image": data.get("image", "/static/images/products/anillo.avif"), # Imagen por defecto
-        "category": data.get("category", "joyas")
+        "image": default_img, 
+        "category": data.get("category", "General"),
+        "views": 0
     }
     products_db.append(new_product)
     return jsonify({"success": True, "product": new_product})
 
-# NUEVO: Ruta para ELIMINAR productos desde el Admin
 @app.route('/api/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     global products_db
     products_db = [p for p in products_db if p['id'] != product_id]
     return jsonify({"success": True, "message": "Producto eliminado"})
 
-
-# --- 2. GESTIÓN DEL CARRITO ---
+# ==========================================
+#  RUTAS API: CARRITO (¡LÓGICA FUNCIONAL!)
+# ==========================================
 
 @app.route('/api/carts/<cart_id>', methods=['GET'])
-def get_cart_fix(cart_id):
+def get_cart(cart_id):
     cart = carts_storage.get(cart_id, {"items": []})
     return jsonify(cart)
 
 @app.route('/api/carts/<cart_id>/add', methods=['POST'])
-def add_to_cart_fix(cart_id):
+def add_to_cart(cart_id):
     data = request.json
+    try:
+        # Convertimos a int porque en la BD los IDs son numéricos
+        product_id = int(data.get('product_id'))
+    except:
+        return jsonify({"success": False, "error": "ID inválido"}), 400
+    
     if cart_id not in carts_storage:
         carts_storage[cart_id] = {"items": []}
     
+    # 1. Buscamos si ya existe en el carrito para sumar cantidad
     found = False
     for item in carts_storage[cart_id]["items"]:
-        if item["product_id"] == data["product_id"]:
+        if item["product_id"] == product_id:
             item["quantity"] += 1
             found = True
             break
     
+    # 2. Si no existe, lo agregamos
     if not found:
-        product_info = next((p for p in products_db if p["id"] == data["product_id"]), None)
+        product_info = next((p for p in products_db if p["id"] == product_id), None)
         if product_info:
             new_item = {
-                "product_id": data["product_id"],
+                "product_id": product_info["id"],
                 "name": product_info["name"],
                 "price": product_info["price"],
                 "quantity": 1,
                 "image": product_info["image"]
             }
             carts_storage[cart_id]["items"].append(new_item)
+    
     return jsonify(carts_storage[cart_id])
 
 @app.route('/api/carts/<cart_id>/remove', methods=['POST'])
-def remove_from_cart_fix(cart_id):
+def remove_from_cart(cart_id):
     data = request.json
-    product_id_to_remove = data.get('product_id')
+    product_id_to_remove = int(data.get('product_id'))
+    
     if cart_id in carts_storage:
         carts_storage[cart_id]["items"] = [
             item for item in carts_storage[cart_id]["items"] 
             if item["product_id"] != product_id_to_remove
         ]
         return jsonify({"success": True, "cart": carts_storage[cart_id]})
+    
     return jsonify({"success": False, "error": "Carrito no encontrado"}), 404
 
+# ==========================================
+#  OTRAS RUTAS
+# ==========================================
 
-# --- 3. AUTENTICACIÓN (LOGIN) ---
+@app.route('/api/orders/stats', methods=['GET'])
+def get_stats():
+    return jsonify({"total_revenue": 3500, "total_sales_count": 12, "failed_payments": 2})
 
-# NUEVO: Ruta para verificar usuario y contraseña
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    return jsonify(orders_db)
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    username = data.get('username')
-    password = data.get('password')
-
-    # CREDENCIALES FIJAS (Puedes cambiarlas aquí)
-    # Aceptamos 'admin' o 'alison' como usuario
-    if (username == 'admin' or username == 'alison') and password == '123':
-        return jsonify({"success": True, "message": "Login exitoso"})
-    
-    return jsonify({"success": False, "message": "Credenciales incorrectas"}), 401
-
-
-# ==========================================
-#  RUTAS DE PÁGINAS WEB (FRONTEND)
-# ==========================================
+    if (data.get('username') == 'admin' or data.get('username') == 'alison') and data.get('password') == '123':
+        return jsonify({"success": True})
+    return jsonify({"success": False}), 401
 
 @app.route('/')
 def user_panel(): return render_template("user.html")
-
 @app.route('/carrito')
 def carrito_page(): return render_template("carrito.html")
-
 @app.route('/productos')
 def productos_page(): return render_template("productos.html")
-
 @app.route('/contacto')
 def contacto_page(): return render_template("contacto.html")
-
 @app.route('/admin')
-def admin_panel():
-    return render_template("admin.html")
-
+def admin_panel(): return render_template("admin.html")
 @app.route('/login')
-def login_page():
-    return render_template("login.html")
+def login_page(): return render_template("login.html")
 
-# Servir archivos estáticos
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)
 
 if __name__ == '__main__':
-    print("--- SERVIDOR LISTO EN PUERTO 5000 ---")
+    print("--- SERVIDOR CORRIENDO EN PUERTO 5000 ---")
     app.run(debug=True, port=5000)
